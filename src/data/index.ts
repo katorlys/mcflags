@@ -16,6 +16,7 @@ export type {
   Platform,
   PlatformId,
   Preset,
+  PresetFlag,
   PresetId,
   RestartMode,
 } from './types'
