@@ -14,15 +14,28 @@ type Flag = {
   description: string
   category: FlagCategory
   tags: FlagTag[]
+  configurable?: {
+    valueTemplate: string
+    defaultValue: number | string
+    min?: number
+    max?: number
+    step?: number
+    unit?: string
+  }
 }
 
 type PresetId = "custom" | "aikars" | "common" | "waterfall-velocity"
+
+type PresetFlag = {
+  id: string
+  value?: number | string
+}
 
 type Preset = {
   id: PresetId
   name: string
   description: string
-  flagIds: string[]
+  flags: PresetFlag[]
   coreTags: CoreTag[]
 }
 
@@ -67,6 +80,7 @@ export type {
   Platform,
   PlatformId,
   Preset,
+  PresetFlag,
   PresetId,
   RestartMode,
 }
