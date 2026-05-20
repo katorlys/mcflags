@@ -9,7 +9,7 @@ import { Slider } from '@/components/ui/slider'
 import { flagFilters, flags, launchOptions, platforms, presets } from '@/data'
 import type { FilterId, Flag, PlatformId, PresetFlag, PresetId, RestartMode } from '@/data'
 import { generateCommand } from '@/lib/generator'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { FaArrowDownAZ, FaCheck, FaCopy, FaDocker, FaFilter, FaGrip, FaLinux, FaList, FaMagnifyingGlass, FaWindows } from 'react-icons/fa6'
 
 const platformIcons = {
@@ -40,7 +40,13 @@ function AppShell() {
   const [flagPage, setFlagPage] = useState(1)
   const [copyLabel, setCopyLabel] = useState("Copy")
   const [resultContent, setResultContent] = useState("")
+  const [completionQuery, setCompletionQuery] = useState("")
+  const [completionStart, setCompletionStart] = useState<number | null>(null)
+  const [completionPosition, setCompletionPosition] = useState({ left: 16, top: 48 })
+  const [completionMaxHeight, setCompletionMaxHeight] = useState(176)
+  const [activeCompletionIndex, setActiveCompletionIndex] = useState(0)
   const skipResultSync = useRef(false)
+  const resultTextareaRef = useRef<HTMLTextAreaElement>(null)
   const selectedPreset = presets.find((preset) => preset.id === selectedPresetId) ?? presets[0]
   const normalizedFlagSearch = flagSearch.trim().toLowerCase()
   const visibleFlags = flags.filter((flag) => {
@@ -80,6 +86,9 @@ function AppShell() {
     restartMode,
   })
   const resultRows = Math.max(8, resultContent.split("\n").length)
+  const completionOptions = completionStart === null ? [] : flags
+    .filter((flag) => flag.value.toLowerCase().startsWith(completionQuery.toLowerCase()))
+    .slice(0, 8)
   useEffect(() => {
     if (skipResultSync.current) {
       skipResultSync.current = false
@@ -245,6 +254,78 @@ function AppShell() {
     skipResultSync.current = true
     setResultContent(value)
     applyJavaCommand(value)
+  }
+  const updateCompletion = (value: string, cursorPosition: number) => {
+    const beforeCursor = value.slice(0, cursorPosition)
+    const currentTokenMatch = beforeCursor.match(/(?:^|\s)(-\S*)$/)
+    if (!currentTokenMatch) {
+      setCompletionStart(null)
+      setCompletionQuery("")
+      setActiveCompletionIndex(0)
+      return
+    }
+    const query = currentTokenMatch[1]
+    const textarea = resultTextareaRef.current
+    const linesBeforeCursor = beforeCursor.split("\n")
+    const lineIndex = linesBeforeCursor.length - 1
+    const columnIndex = linesBeforeCursor[lineIndex]?.length ?? 0
+    const lineHeight = 20
+    const characterWidth = 8
+    const padding = 16
+    const textareaWidth = textarea?.clientWidth ?? 640
+    const textareaHeight = textarea?.clientHeight ?? 176
+    const popupWidth = Math.min(448, textareaWidth - padding * 2)
+    const nextTop = padding + (lineIndex + 1) * lineHeight - (textarea?.scrollTop ?? 0)
+    setCompletionStart(cursorPosition - query.length)
+    setCompletionQuery(query)
+    setCompletionPosition({
+      left: Math.min(padding + columnIndex * characterWidth, Math.max(padding, textareaWidth - popupWidth - padding)),
+      top: nextTop,
+    })
+    setCompletionMaxHeight(Math.max(48, Math.min(176, textareaHeight - nextTop - padding)))
+    setActiveCompletionIndex(0)
+  }
+  const handleResultInputChange = (value: string, cursorPosition: number) => {
+    handleResultChange(value)
+    updateCompletion(value, cursorPosition)
+  }
+  const applyCompletion = (flag: Flag) => {
+    if (completionStart === null) return
+    const textarea = resultTextareaRef.current
+    const cursorPosition = textarea?.selectionStart ?? resultContent.length
+    const insertedValue = flag.configurable
+      ? flag.configurable.valueTemplate.replace("{value}", String(flag.configurable.defaultValue))
+      : flag.value
+    const nextContent = `${resultContent.slice(0, completionStart)}${insertedValue}${resultContent.slice(cursorPosition)}`
+    const nextCursorPosition = completionStart + insertedValue.length
+    skipResultSync.current = true
+    setResultContent(nextContent)
+    applyJavaCommand(nextContent)
+    setCompletionStart(null)
+    setCompletionQuery("")
+    window.requestAnimationFrame(() => {
+      textarea?.focus()
+      textarea?.setSelectionRange(nextCursorPosition, nextCursorPosition)
+    })
+  }
+  const handleResultKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (completionOptions.length === 0) return
+    if (event.key === "ArrowDown") {
+      event.preventDefault()
+      setActiveCompletionIndex((index) => (index + 1) % completionOptions.length)
+    }
+    if (event.key === "ArrowUp") {
+      event.preventDefault()
+      setActiveCompletionIndex((index) => (index - 1 + completionOptions.length) % completionOptions.length)
+    }
+    if (event.key === "Enter" || event.key === "Tab") {
+      event.preventDefault()
+      applyCompletion(completionOptions[activeCompletionIndex])
+    }
+    if (event.key === "Escape") {
+      setCompletionStart(null)
+      setCompletionQuery("")
+    }
   }
   return (
     <main className="mx-auto box-border flex w-full max-w-6xl flex-1 flex-col gap-8 px-4 py-8 sm:px-6 lg:px-8">
@@ -547,13 +628,40 @@ function AppShell() {
                   </Button>
                 </div>
                 <textarea
-                  className="w-full resize-none bg-transparent p-4 pr-24 text-sm text-foreground outline-none"
+                  ref={resultTextareaRef}
+                  className="w-full resize-y bg-transparent p-4 pr-24 text-sm text-foreground outline-none"
                   value={resultContent}
-                  onChange={(event) => handleResultChange(event.target.value)}
+                  onChange={(event) => handleResultInputChange(event.target.value, event.target.selectionStart)}
+                  onKeyDown={handleResultKeyDown}
+                  onClick={(event) => updateCompletion(event.currentTarget.value, event.currentTarget.selectionStart)}
                   aria-label="Output result"
                   rows={resultRows}
                   spellCheck={false}
                 />
+                {completionOptions.length > 0 ? (
+                  <div
+                    className="absolute z-20 w-[min(28rem,calc(100%-2rem))] overflow-auto rounded-lg border bg-popover p-1 text-sm text-popover-foreground shadow-lg"
+                    style={{ left: completionPosition.left, top: completionPosition.top, maxHeight: completionMaxHeight }}
+                  >
+                    {completionOptions.map((flag, index) => {
+                      const completionValue = flag.configurable ? flag.configurable.valueTemplate.replace("{value}", String(flag.configurable.defaultValue)) : flag.value
+                      return (
+                        <button
+                          className={`w-full truncate rounded-md px-3 py-1.5 text-left ${index === activeCompletionIndex ? "bg-accent" : "hover:bg-accent"}`}
+                          key={flag.id}
+                          type="button"
+                          onMouseDown={(event) => {
+                            event.preventDefault()
+                            applyCompletion(flag)
+                          }}
+                        >
+                          <span>{completionValue.slice(0, completionQuery.length)}</span>
+                          <span className="text-muted-foreground">{completionValue.slice(completionQuery.length)}</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                ) : null}
               </div>
               <div className="flex flex-col gap-2 sm:flex-row sm:justify-between">
                 <Button onClick={handleDownload}>Download</Button>
