@@ -9,8 +9,8 @@ import { Slider } from '@/components/ui/slider'
 import { flagFilters, flags, launchOptions, platforms, presets } from '@/data'
 import type { FilterId, Flag, PlatformId, PresetFlag, PresetId, RestartMode } from '@/data'
 import { generateCommand } from '@/lib/generator'
-import { useState } from 'react'
-import { FaArrowDownAZ, FaCopy, FaDocker, FaFilter, FaGrip, FaLinux, FaList, FaMagnifyingGlass, FaWindows } from 'react-icons/fa6'
+import { useEffect, useRef, useState } from 'react'
+import { FaArrowDownAZ, FaCheck, FaCopy, FaDocker, FaFilter, FaGrip, FaLinux, FaList, FaMagnifyingGlass, FaWindows } from 'react-icons/fa6'
 
 const platformIcons = {
   windows: FaWindows,
@@ -38,6 +38,9 @@ function AppShell() {
   const [flagSort, setFlagSort] = useState<FlagSort>("default")
   const [flagView, setFlagView] = useState<FlagView>("cards")
   const [flagPage, setFlagPage] = useState(1)
+  const [copyLabel, setCopyLabel] = useState("Copy")
+  const [resultContent, setResultContent] = useState("")
+  const skipResultSync = useRef(false)
   const selectedPreset = presets.find((preset) => preset.id === selectedPresetId) ?? presets[0]
   const normalizedFlagSearch = flagSearch.trim().toLowerCase()
   const visibleFlags = flags.filter((flag) => {
@@ -76,7 +79,14 @@ function AppShell() {
     nogui: !gui,
     restartMode,
   })
-  const resultRows = Math.max(8, generatedCommand.content.split("\n").length)
+  const resultRows = Math.max(8, resultContent.split("\n").length)
+  useEffect(() => {
+    if (skipResultSync.current) {
+      skipResultSync.current = false
+      return
+    }
+    setResultContent(generatedCommand.content)
+  }, [generatedCommand.content])
   const handlePresetChange = (presetId: string) => {
     const preset = presets.find((item) => item.id === presetId) ?? customPreset
     setSelectedPresetId(preset.id)
@@ -145,6 +155,97 @@ function AppShell() {
     setSelectedPresetId("custom")
     setSelectedFlags((currentFlags) => currentFlags.map((selectedFlag) => selectedFlag.id === flag.id ? { ...selectedFlag, value } : selectedFlag))
   }
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(resultContent)
+    setCopyLabel("Copied!")
+    window.setTimeout(() => setCopyLabel("Copy"), 1600)
+  }
+  const handleDownload = () => {
+    const blob = new Blob([resultContent], { type: "text/plain;charset=utf-8" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.download = generatedCommand.fileName
+    document.body.append(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+  }
+  const parseMemoryValue = (value: string) => {
+    const match = value.match(/^-Xm[sx](\d+)([mMgG])$/)
+    if (!match) return null
+    const amount = Number(match[1])
+    return match[2].toLowerCase() === "m" ? amount / 1024 : amount
+  }
+  const resolveFlagFromToken = (token: string): PresetFlag | null => {
+    for (const flag of flags) {
+      if (!flag.configurable && flag.value === token) {
+        return { id: flag.id }
+      }
+      if (flag.configurable) {
+        const [prefix, suffix = ""] = flag.configurable.valueTemplate.split("{value}")
+        if (token.startsWith(prefix) && token.endsWith(suffix)) {
+          return { id: flag.id, value: token.slice(prefix.length, token.length - suffix.length) }
+        }
+      }
+    }
+    return null
+  }
+  const findJavaTokens = (content: string) => {
+    const javaLine = content.split("\n").map((line) => line.trim()).find((line) => line.startsWith("java "))
+    if (javaLine) {
+      return javaLine.match(/"[^"]*"|'[^']*'|\S+/g)?.map((token) => token.replace(/^['"]|['"]$/g, '')) ?? []
+    }
+    const commandLine = content.split("\n").map((line) => line.trim()).find((line) => line.startsWith("command:"))
+    const commandValue = commandLine?.replace(/^command:\s*/, "")
+    if (!commandValue) return []
+    try {
+      const parsedCommand = JSON.parse(commandValue.replace(/'/g, '"'))
+      if (Array.isArray(parsedCommand) && parsedCommand[0] === "java") {
+        return parsedCommand.map(String)
+      }
+    } catch {
+      return []
+    }
+    return []
+  }
+  const applyJavaCommand = (content: string) => {
+    const tokens = findJavaTokens(content)
+    if (tokens.length === 0) return
+    const nextSelectedFlags: PresetFlag[] = []
+    tokens.forEach((token, index) => {
+      if (token.startsWith("-Xms")) {
+        const parsedMemory = parseMemoryValue(token)
+        if (parsedMemory !== null) setMemory(([_, max]) => [parsedMemory, max])
+      }
+      if (token.startsWith("-Xmx")) {
+        const parsedMemory = parseMemoryValue(token)
+        if (parsedMemory !== null) setMemory(([min]) => [min, parsedMemory])
+      }
+      if (token === "-jar" && tokens[index + 1]) {
+        setJarName(tokens[index + 1])
+      }
+      if (token === "--nojline") {
+        setNoJline(true)
+      }
+      if (token === "nogui") {
+        setGui(false)
+      }
+      const parsedFlag = resolveFlagFromToken(token)
+      if (parsedFlag && !nextSelectedFlags.some((flag) => flag.id === parsedFlag.id)) {
+        nextSelectedFlags.push(parsedFlag)
+      }
+    })
+    setSelectedPresetId("custom")
+    setSelectedFlags(nextSelectedFlags)
+    if (!tokens.includes("--nojline")) setNoJline(false)
+    if (!tokens.includes("nogui")) setGui(true)
+  }
+  const handleResultChange = (value: string) => {
+    skipResultSync.current = true
+    setResultContent(value)
+    applyJavaCommand(value)
+  }
   return (
     <main className="mx-auto box-border flex w-full max-w-6xl flex-1 flex-col gap-8 px-4 py-8 sm:px-6 lg:px-8">
       <section className="grid min-w-0 gap-3">
@@ -154,7 +255,7 @@ function AppShell() {
               Generate Minecraft server JVM startup flags
             </h1>
           </div>
-          <Button className="w-fit">Download</Button>
+          <Button className="w-fit" onClick={handleDownload}>Download</Button>
         </div>
       </section>
       <section className="grid min-w-0 gap-6">
@@ -438,24 +539,24 @@ function AppShell() {
             <CardContent className="grid gap-3">
               <div className="relative min-w-0 overflow-hidden rounded-lg border bg-muted">
                 <div className="group absolute right-3 top-3 z-10 flex items-center">
-                  <span className="pointer-events-none mr-2 hidden rounded-md bg-primary px-3 py-2 text-sm text-primary-foreground shadow-sm group-hover:block">
-                    Copy
+                  <span className="pointer-events-none mr-2 hidden rounded-md bg-primary px-2.5 py-1.5 text-xs whitespace-nowrap text-primary-foreground shadow-sm group-hover:block">
+                    {copyLabel}
                   </span>
-                  <Button size="icon" variant="secondary" aria-label="Copy code">
-                    <FaCopy className="size-4" aria-hidden="true" />
+                  <Button size="icon" variant="secondary" onClick={handleCopy} aria-label="Copy code">
+                    {copyLabel === "Copied!" ? <FaCheck className="size-4" aria-hidden="true" /> : <FaCopy className="size-4" aria-hidden="true" />}
                   </Button>
                 </div>
                 <textarea
                   className="w-full resize-none bg-transparent p-4 pr-24 text-sm text-foreground outline-none"
-                  value={generatedCommand.content}
+                  value={resultContent}
+                  onChange={(event) => handleResultChange(event.target.value)}
                   aria-label="Output result"
                   rows={resultRows}
                   spellCheck={false}
-                  readOnly
                 />
               </div>
               <div className="flex flex-col gap-2 sm:flex-row sm:justify-between">
-                <Button>Download</Button>
+                <Button onClick={handleDownload}>Download</Button>
                 <Button variant="outline">Submit your flag set</Button>
               </div>
             </CardContent>
