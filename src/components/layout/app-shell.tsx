@@ -10,6 +10,7 @@ import { flagFilters, flags, launchOptions, platforms, presets } from '@/data'
 import type { FilterId, Flag, PlatformId, PresetFlag, PresetId, RestartMode } from '@/data'
 import { generateCommand } from '@/lib/generator'
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 import { FaArrowDownAZ, FaCheck, FaCopy, FaDocker, FaFilter, FaGrip, FaLinux, FaList, FaMagnifyingGlass, FaWindows } from 'react-icons/fa6'
 
 const platformIcons = {
@@ -23,6 +24,7 @@ type FlagSort = "default" | "az" | "za"
 type FlagView = "cards" | "list"
 
 function AppShell() {
+  const { t } = useTranslation()
   const customPreset = presets[0]
   const [jarName, setJarName] = useState("server.jar")
   const [memory, setMemory] = useState([1, 8])
@@ -38,7 +40,7 @@ function AppShell() {
   const [flagSort, setFlagSort] = useState<FlagSort>("default")
   const [flagView, setFlagView] = useState<FlagView>("cards")
   const [flagPage, setFlagPage] = useState(1)
-  const [copyLabel, setCopyLabel] = useState("Copy")
+  const [copyLabel, setCopyLabel] = useState(t("result.copy"))
   const [resultContent, setResultContent] = useState("")
   const [completionQuery, setCompletionQuery] = useState("")
   const [completionStart, setCompletionStart] = useState<number | null>(null)
@@ -166,8 +168,8 @@ function AppShell() {
   }
   const handleCopy = async () => {
     await navigator.clipboard.writeText(resultContent)
-    setCopyLabel("Copied!")
-    window.setTimeout(() => setCopyLabel("Copy"), 1600)
+    setCopyLabel(t("result.copied"))
+    window.setTimeout(() => setCopyLabel(t("result.copy")), 1600)
   }
   const handleDownload = () => {
     const blob = new Blob([resultContent], { type: "text/plain;charset=utf-8" })
@@ -203,13 +205,13 @@ function AppShell() {
   const findJavaTokens = (content: string) => {
     const javaLine = content.split("\n").map((line) => line.trim()).find((line) => line.startsWith("java "))
     if (javaLine) {
-      return javaLine.match(/"[^"]*"|'[^']*'|\S+/g)?.map((token) => token.replace(/^['"]|['"]$/g, '')) ?? []
+      return javaLine.match(/"[^"]*"|"[^"]*"|\S+/g)?.map((token) => token.replace(/^[""]|[""]$/g, "")) ?? []
     }
     const commandLine = content.split("\n").map((line) => line.trim()).find((line) => line.startsWith("command:"))
     const commandValue = commandLine?.replace(/^command:\s*/, "")
     if (!commandValue) return []
     try {
-      const parsedCommand = JSON.parse(commandValue.replace(/'/g, '"'))
+      const parsedCommand = JSON.parse(commandValue.replace(/"/g, '"'))
       if (Array.isArray(parsedCommand) && parsedCommand[0] === "java") {
         return parsedCommand.map(String)
       }
@@ -333,25 +335,25 @@ function AppShell() {
         <div className="grid min-w-0 gap-3 lg:grid-cols-[1fr_auto] lg:items-end">
           <div className="space-y-3">
             <h1 className="w-full text-3xl font-semibold tracking-tight sm:text-4xl lg:max-w-3xl">
-              Generate Minecraft server JVM startup flags
+              {t("app.title")}
             </h1>
           </div>
-          <Button className="w-fit" onClick={handleDownload}>Download</Button>
+          <Button className="w-fit" onClick={handleDownload}>{t("result.download")}</Button>
         </div>
       </section>
       <section className="grid min-w-0 gap-6">
         <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
           <Card className="min-w-0">
             <CardHeader>
-              <CardTitle>Basic</CardTitle>
+              <CardTitle>{t("basic.title")}</CardTitle>
             </CardHeader>
             <CardContent className="grid items-start gap-6 md:grid-cols-2">
               <div className="grid content-start gap-2">
-                <Label htmlFor="jar-name">Server core .jar name</Label>
+                <Label htmlFor="jar-name">{t("basic.jarName")}</Label>
                 <Input id="jar-name" value={jarName} onChange={(event) => setJarName(event.target.value)} />
               </div>
               <div className="grid gap-2">
-                <Label>Memory</Label>
+                <Label>{t("basic.memory")}</Label>
                 <div className="pt-4">
                   <Slider value={memory} onValueChange={setMemory} min={0.5} max={maxMemory} step={0.5} formatValue={formatMemory} aria-label="Memory range" />
                 </div>
@@ -366,17 +368,17 @@ function AppShell() {
                       min={1}
                       step={1}
                       type="number"
-                      aria-label="Maximum memory range in GB"
+                      aria-label={t("basic.maxMemory")}
                     />
                     <span>GB</span>
                   </label>
                 </div>
               </div>
               <div className="grid content-start gap-2">
-                <Label>Pre-made Flags</Label>
+                <Label>{t("basic.presets")}</Label>
                 <Select value={selectedPresetId} onValueChange={handlePresetChange}>
                   <SelectTrigger className="h-9 overflow-hidden text-left [&>span:first-child]:min-w-0 [&>span:first-child]:flex-1 [&>span:first-child]:overflow-hidden">
-                    <SelectValue placeholder="Select preset">{selectedPreset.name}</SelectValue>
+                    <SelectValue placeholder={t("basic.selectPreset")}>{selectedPreset.name}</SelectValue>
                   </SelectTrigger>
                   <SelectContent className="w-(--radix-select-trigger-width) max-w-[calc(100vw-2rem)]">
                     {presets.map((preset) => (
@@ -393,10 +395,10 @@ function AppShell() {
                 </Select>
               </div>
               <div className="grid gap-2">
-                <Label>Platform</Label>
+                <Label>{t("basic.platform")}</Label>
                 <Select value={platformId} onValueChange={(value) => setPlatformId(value as PlatformId)}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select platform" />
+                    <SelectValue placeholder={t("basic.selectPlatform")} />
                   </SelectTrigger>
                   <SelectContent>
                     {platforms.map((platform) => {
@@ -418,7 +420,7 @@ function AppShell() {
           <aside className="grid gap-6 lg:self-start">
             <Card className="min-w-0">
               <CardHeader>
-                <CardTitle>Options</CardTitle>
+                <CardTitle>{t("options.title")}</CardTitle>
               </CardHeader>
               <CardContent className="grid gap-2">
                 {launchOptions.map((option) => (
@@ -435,33 +437,33 @@ function AppShell() {
         <div className="grid min-w-0 gap-6">
           <Card className="min-w-0">
             <CardHeader>
-              <CardTitle>Flags</CardTitle>
-              <CardDescription>You may select multiple flags</CardDescription>
+              <CardTitle>{t("flags.title")}</CardTitle>
+              <CardDescription>{t("flags.description")}</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4">
               <div className="grid gap-3 sm:grid-cols-[1fr_160px_180px_auto]">
                 <div className="relative">
                   <FaMagnifyingGlass className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-                  <Input className="pl-9" value={flagSearch} onChange={(event) => handleFlagSearchChange(event.target.value)} placeholder="Search flags" aria-label="Search flags" />
+                  <Input className="pl-9" value={flagSearch} onChange={(event) => handleFlagSearchChange(event.target.value)} placeholder={t("flags.search")} aria-label={t("flags.search")} />
                 </div>
                 <Select value={flagSort} onValueChange={handleFlagSortChange}>
                   <SelectTrigger>
                     <span className="flex min-w-0 items-center gap-2">
                       <FaArrowDownAZ className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-                      <SelectValue placeholder="Sort" />
+                      <SelectValue placeholder={t("flags.sort")} />
                     </span>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="default">Default</SelectItem>
-                    <SelectItem value="az">A-Z</SelectItem>
-                    <SelectItem value="za">Z-A</SelectItem>
+                    <SelectItem value="default">{t("flags.defaultSort")}</SelectItem>
+                    <SelectItem value="az">{t("flags.az")}</SelectItem>
+                    <SelectItem value="za">{t("flags.za")}</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select value={selectedFilterId} onValueChange={handleFlagFilterChange}>
                   <SelectTrigger>
                     <span className="flex min-w-0 items-center gap-2">
                       <FaFilter className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-                      <SelectValue placeholder="Filter" />
+                      <SelectValue placeholder={t("flags.filter")} />
                     </span>
                   </SelectTrigger>
                   <SelectContent>
@@ -477,7 +479,7 @@ function AppShell() {
                     size="icon"
                     variant={flagView === "cards" ? "secondary" : "ghost"}
                     onClick={() => setFlagView("cards")}
-                    aria-label="Show flags as cards"
+                    aria-label={t("flags.cardsView")}
                     aria-pressed={flagView === "cards"}
                   >
                     <FaGrip className="size-4" aria-hidden="true" />
@@ -488,7 +490,7 @@ function AppShell() {
                     size="icon"
                     variant={flagView === "list" ? "secondary" : "ghost"}
                     onClick={() => setFlagView("list")}
-                    aria-label="Show flags as list"
+                    aria-label={t("flags.listView")}
                     aria-pressed={flagView === "list"}
                   >
                     <FaList className="size-4" aria-hidden="true" />
@@ -518,7 +520,7 @@ function AppShell() {
                       <p className="text-sm text-muted-foreground">{flag.description}</p>
                       {flag.configurable && isFlagSelected(flag.id) ? (
                         <label className="mt-4 flex w-full items-center gap-2 text-sm" onClick={(event) => event.stopPropagation()}>
-                          <span className="text-muted-foreground">Value</span>
+                          <span className="text-muted-foreground">{t("flags.value")}</span>
                           <Input
                             className="h-8"
                             value={getSelectedFlagValue(flag)}
@@ -558,7 +560,7 @@ function AppShell() {
                       </button>
                       {flag.configurable && isFlagSelected(flag.id) ? (
                         <label className="flex items-center gap-2 px-4 pb-4 text-sm">
-                          <span className="text-muted-foreground">Value</span>
+                          <span className="text-muted-foreground">{t("flags.value")}</span>
                           <Input
                             className="h-8 max-w-40"
                             value={getSelectedFlagValue(flag)}
@@ -578,12 +580,12 @@ function AppShell() {
                 </div>
               )}
               {visibleFlags.length === 0 ? (
-                <p className="rounded-lg border-dashed p-6 text-center text-sm text-muted-foreground">No flags found.</p>
+                <p className="rounded-lg border-dashed p-6 text-center text-sm text-muted-foreground">{t("flags.none")}</p>
               ) : null}
               {visibleFlags.length > 0 ? (
                 <div className="grid gap-3 border-t pt-4 text-sm text-muted-foreground sm:grid-cols-[1fr_auto_1fr] sm:items-center">
                   <span>
-                    Showing {(currentFlagPage - 1) * flagsPerPage + 1}-{Math.min(currentFlagPage * flagsPerPage, visibleFlags.length)} of {visibleFlags.length} flags
+                    {t("flags.showing", { start: (currentFlagPage - 1) * flagsPerPage + 1, end: Math.min(currentFlagPage * flagsPerPage, visibleFlags.length), total: visibleFlags.length })}
                   </span>
                   <div className="flex items-center justify-center gap-2">
                     <Button
@@ -592,7 +594,7 @@ function AppShell() {
                       onClick={() => setFlagPage((page) => Math.max(1, page - 1))}
                       disabled={currentFlagPage === 1}
                     >
-                      Previous
+                      {t("flags.previous")}
                     </Button>
                     <span className="min-w-20 text-center">
                       {currentFlagPage} / {totalFlagPages}
@@ -603,11 +605,11 @@ function AppShell() {
                       onClick={() => setFlagPage((page) => Math.min(totalFlagPages, page + 1))}
                       disabled={currentFlagPage === totalFlagPages}
                     >
-                      Next
+                      {t("flags.next")}
                     </Button>
                   </div>
                   <div className="flex justify-start sm:justify-end">
-                    <Button className="text-foreground" variant="outline">Submit flags</Button>
+                    <Button className="text-foreground" variant="outline">{t("flags.submit")}</Button>
                   </div>
                 </div>
               ) : null}
@@ -615,7 +617,7 @@ function AppShell() {
           </Card>
           <Card className="min-w-0">
             <CardHeader>
-              <CardTitle>Result</CardTitle>
+              <CardTitle>{t("result.title")}</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-3">
               <div className="relative min-w-0 overflow-hidden rounded-lg border bg-muted">
@@ -623,8 +625,8 @@ function AppShell() {
                   <span className="pointer-events-none mr-2 hidden rounded-md bg-primary px-2.5 py-1.5 text-xs whitespace-nowrap text-primary-foreground shadow-sm group-hover:block">
                     {copyLabel}
                   </span>
-                  <Button size="icon" variant="secondary" onClick={handleCopy} aria-label="Copy code">
-                    {copyLabel === "Copied!" ? <FaCheck className="size-4" aria-hidden="true" /> : <FaCopy className="size-4" aria-hidden="true" />}
+                  <Button size="icon" variant="secondary" onClick={handleCopy} aria-label={t("result.copyCode")}>
+                    {copyLabel === t("result.copied") ? <FaCheck className="size-4" aria-hidden="true" /> : <FaCopy className="size-4" aria-hidden="true" />}
                   </Button>
                 </div>
                 <textarea
@@ -634,7 +636,7 @@ function AppShell() {
                   onChange={(event) => handleResultInputChange(event.target.value, event.target.selectionStart)}
                   onKeyDown={handleResultKeyDown}
                   onClick={(event) => updateCompletion(event.currentTarget.value, event.currentTarget.selectionStart)}
-                  aria-label="Output result"
+                  aria-label={t("result.output")}
                   rows={resultRows}
                   spellCheck={false}
                 />
@@ -664,8 +666,8 @@ function AppShell() {
                 ) : null}
               </div>
               <div className="flex flex-col gap-2 sm:flex-row sm:justify-between">
-                <Button onClick={handleDownload}>Download</Button>
-                <Button variant="outline">Submit your flag set</Button>
+                <Button onClick={handleDownload}>{t("result.download")}</Button>
+                <Button variant="outline">{t("result.submit")}</Button>
               </div>
             </CardContent>
           </Card>
