@@ -3,7 +3,6 @@ import type { Theme } from '@/hooks/use-theme'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FaCheck, FaGithub, FaGlobe, FaMoon, FaSun, FaDesktop } from 'react-icons/fa6'
-import { FaTerminal } from 'react-icons/fa'
 
 type HeaderProps = {
   theme: Theme
@@ -16,6 +15,8 @@ function Header({ theme, onThemeChange }: HeaderProps) {
   const languageMenuRef = useRef<HTMLDivElement>(null)
   const nextTheme = theme === "system" ? "light" : theme === "light" ? "dark" : "system"
   const ThemeIcon = theme === "system" ? FaDesktop : theme === "light" ? FaSun : FaMoon
+  const appIconSrc = `${import.meta.env.BASE_URL}favicon/favicon.svg`
+  const labIconSrc = `${import.meta.env.BASE_URL}katorlylab.svg`
   const currentLanguage = i18n.language.startsWith("zh") ? "zh" : "en"
   const handleLanguageChange = (language: string) => {
     i18n.changeLanguage(language)
@@ -47,13 +48,11 @@ function Header({ theme, onThemeChange }: HeaderProps) {
       <div className="mx-auto box-border flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3 font-semibold">
           <a href="https://katorly.com" target="_blank" rel="noreferrer" aria-label={t("nav.lab")}>
-            <img className="size-8 rounded-md" src="/katorlylab.svg" alt="Katorly Lab" />
+            <img className="size-8 rounded-md" src={labIconSrc} alt="Katorly Lab" />
           </a>
           <span className="text-muted-foreground" aria-hidden="true">/</span>
-          <a href="/" className="flex items-center gap-2" aria-label={t("nav.home")}>
-            <span className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <FaTerminal className="size-5" aria-hidden="true" />
-            </span>
+          <a href={import.meta.env.BASE_URL} className="flex items-center gap-2" aria-label={t("nav.home")}>
+            <img className="size-9 rounded-lg" src={appIconSrc} alt='' aria-hidden='true' />
             <span className="text-lg">MCFlags</span>
           </a>
         </div>

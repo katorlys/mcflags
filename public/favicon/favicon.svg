@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 200 211.007" width="200" height="211.006668" fill="none" customframe="#000000"><metadata><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/"></rdf:RDF></metadata><g id="cube">
+		<g id="front">
+			<rect id="frame" width="110.294106" height="117.647049" x="0.000000" y="0.000000" fill="rgb(122,122,122)" transform="matrix(0.906308,-0.422618,-2.70101e-08,1,100,93.3596)"></rect>
+			<rect id="screen" width="84.558815" height="90.196068" x="0.000000" y="0.000000" fill="rgb(44,51,61)" transform="matrix(0.906308,-0.422618,-2.70101e-08,1,111.995,101.099)"></rect>
+			<path id="line" d="M0 0L22.0588 0" stroke="rgb(63,255,0)" stroke-linecap="round" stroke-width="7.500000" transform="matrix(0.906308,-0.422618,-2.70101e-08,1,154.645,152.584)"></path>
+			<path id="line" d="M0 0L30.071 0" stroke="rgb(63,255,0)" stroke-linecap="round" stroke-width="7.500000" transform="matrix(0.726129,-0.937003,0.542338,0.548299,127.989,150.852)"></path>
+			<path id="line" d="M0 0L30.071 0" stroke="rgb(63,255,0)" stroke-linecap="round" stroke-width="7.500000" transform="matrix(0.72613,0.259803,-0.542337,1.05409,127.989,114.818)"></path>
+		</g>
+		<g id="side">
+			<rect id="body" width="110.294106" height="117.647057" x="0.000000" y="0.000000" fill="rgb(101,101,101)" transform="matrix(0.906308,0.422618,0,1,0,46.7473)"></rect>
+			<rect id="square" width="14.705880" height="117.647057" x="0.000000" y="0.000000" fill="rgb(69,69,69)" transform="matrix(0.906308,0.422618,0,1,61.3091,75.3362)"></rect>
+			<rect id="square" width="29.411760" height="17.254902" x="0.000000" y="0.000000" fill="rgb(84,84,84)" transform="matrix(0.906308,0.422618,0,1,0,96.9434)"></rect>
+			<rect id="square" width="29.411760" height="17.254902" x="0.000000" y="0.000000" fill="rgb(84,84,84)" transform="matrix(0.906308,0.422618,0,1,0,67.9238)"></rect>
+		</g>
+		<g id="up">
+			<g id="up">
+				<rect id="body" width="110.387093" height="110.387093" x="0.000000" y="0.000000" fill="rgb(89,89,89)" transform="matrix(0.905903,0.423485,-0.905903,0.423485,100,0)"></rect>
+				<rect id="square" width="14.718278" height="14.718278" x="0.000000" y="0.000000" fill="rgb(69,69,69)" transform="matrix(0.905903,0.423485,-0.905903,0.423485,134.667,41.1376)"></rect>
+				<rect id="square" width="14.718278" height="51.513962" x="0.000000" y="0.000000" fill="rgb(69,69,69)" transform="matrix(0.905903,0.423485,-0.905903,0.423485,108,53.6036)"></rect>
+			</g>
+		</g>
+	</g></svg>

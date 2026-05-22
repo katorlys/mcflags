@@ -1,9 +1,9 @@
 <a name="readme-top"></a>
 <div align="center">
 
-<!-- <a href="#">
-  <img src="https://github.com/katorlys/.github/blob/main/assets/mark/mark.png" height="100">
-</a><br> -->
+<a href="#">
+  <img src="screenshots/icon.png" height="100">
+</a><br>
 
 <h1>
   MCFlags
@@ -24,6 +24,55 @@
 
 ## Introduction
 A simple and user-friendly website to help Minecraft server owners generate Minecraft server startup scripts with a wide range of JVM flags.
+
+## Features
+### Multi-platform support
+Generate Minecraft server startup scripts for Windows, Linux/macOS, and Docker Compose.
+
+
+
+### Pre-made flag sets
+Choose from Aikar's, Common, Waterfall/Velocity flag sets.
+
+
+You can also submit your own flag sets.
+
+
+### Flag selection
+Search, filter, sort, and select JVM flags.
+
+
+If a flag you use is not included in the list, you can submit it.
+
+
+### Result editor
+Edit the generated result directly, with synchronization to the flag selection area.
+
+
+Restore your previously-generated results by pasting them to the editor, and the editor will automatically parse the flags and synchronize them to the flag selection area.
+
+
+Copy the result to the clipboard or download it.
+
+
+## Tech Stack
+- React
+- TypeScript
+- Tailwind CSS
+- shadcn/ui
+
+
+## Development
+Real-time development:
+```bash
+pnpm dev
+```
+
+Build for preview:
+```bash
+pnpm build
+pnpm preview
+```
 
 
 <!-- /Main Body -->
