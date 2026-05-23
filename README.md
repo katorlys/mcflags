@@ -29,30 +29,45 @@ A simple and user-friendly website to help Minecraft server owners generate Mine
 ### Multi-platform support
 Generate Minecraft server startup scripts for Windows, Linux/macOS, and Docker Compose.
 
-
+![](screenshots/multiplatform.png)
 
 ### Pre-made flag sets
-Choose from Aikar's, Common, Waterfall/Velocity flag sets.
+Don't know which flags to use? Choose from preset flag sets such as Aikar's, Common, Waterfall/Velocity, and more.
 
+![](screenshots/premade-flags.png)
+
+By choosing Custom, you can start building your flag set from scratch.
 
 You can also submit your own flag sets.
 
-
-### Flag selection
+### Flag selection area
 Search, filter, sort, and select JVM flags.
 
+![](screenshots/flag-selection.png)
 
 If a flag you use is not included in the list, you can submit it.
 
-
 ### Result editor
-Edit the generated result directly, with synchronization to the flag selection area.
+Edit the generated result directly, with built-in auto-complete and synchronization to the flag selection area.
+
+![](screenshots/result-editor.png)
+
+After generating the result, you can copy it to the clipboard or download it as a file based on your selected platform.
+
+Next time you want to edit your flag set, simply paste it into the editor, and the editor will automatically parse the flags and synchronize them to the flag selection area.
+
+![](screenshots/result-restore.png)
+
+### Dark mode, i18n, a11y
+Dark mode, language support, and accessibility are included.
+
+![](screenshots/darkmode.png)
 
 
-Restore your previously-generated results by pasting them to the editor, and the editor will automatically parse the flags and synchronize them to the flag selection area.
+## AI-generated content disclosure
+Some parts of the Java command generator code were assisted by AI.
 
-
-Copy the result to the clipboard or download it.
+All of the flags and flag sets are manually selected by the developers, based on their experience and research. No AI-generated content is included in the flag descriptions or flag sets.
 
 
 ## Tech Stack
@@ -68,7 +83,7 @@ Real-time development:
 pnpm dev
 ```
 
-Build for preview:
+Build and preview:
 ```bash
 pnpm build
 pnpm preview
