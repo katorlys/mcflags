@@ -1,344 +1,55 @@
-import { Badge } from '@/components/ui/badge'
+import { BasicCard } from '@/components/app/basic-card'
+import { FlagsPanel } from '@/components/app/flags-panel'
+import { OptionsCard } from '@/components/app/options-card'
+import { ResultPanel } from '@/components/app/result-panel'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Slider } from '@/components/ui/slider'
-import { flagFilters, flags, launchOptions, platforms, presets } from '@/data'
-import type { FilterId, Flag, PlatformId, PresetFlag, PresetId, RestartMode } from '@/data'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { flags } from '@/data'
+import { useFlagSelection } from '@/hooks/use-flag-selection'
+import { useLaunchSettings } from '@/hooks/use-launch-settings'
+import { useResultEditor } from '@/hooks/use-result-editor'
+import { parseJavaCommand } from '@/lib/parser'
 import { generateCommand } from '@/lib/generator'
-import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { useTranslation } from 'react-i18next'
-import { FaArrowDownAZ, FaCheck, FaCopy, FaDocker, FaFilter, FaGrip, FaLinux, FaList, FaMagnifyingGlass, FaWindows } from 'react-icons/fa6'
-
-const platformIcons = {
-  windows: FaWindows,
-  unix: FaLinux,
-  "docker-compose": FaDocker,
-}
-
-const flagsPerPage = 9
-type FlagSort = "default" | "az" | "za"
-type FlagView = "cards" | "list"
 
 function AppShell() {
   const { t } = useTranslation()
-  const customPreset = presets[0]
-  const [jarName, setJarName] = useState("server.jar")
-  const [memory, setMemory] = useState([1, 8])
-  const [maxMemory, setMaxMemory] = useState(32)
-  const [selectedPresetId, setSelectedPresetId] = useState<PresetId>("custom")
-  const [selectedFlags, setSelectedFlags] = useState<PresetFlag[]>(customPreset.flags)
-  const [platformId, setPlatformId] = useState<PlatformId>("windows")
-  const [gui, setGui] = useState(false)
-  const [noJline, setNoJline] = useState(true)
-  const [restartMode, setRestartMode] = useState<RestartMode>("none")
-  const [flagSearch, setFlagSearch] = useState("")
-  const [selectedFilterId, setSelectedFilterId] = useState<FilterId>("all")
-  const [flagSort, setFlagSort] = useState<FlagSort>("default")
-  const [flagView, setFlagView] = useState<FlagView>("cards")
-  const [flagPage, setFlagPage] = useState(1)
-  const [copyLabel, setCopyLabel] = useState(t("result.copy"))
-  const [resultContent, setResultContent] = useState("")
-  const [completionQuery, setCompletionQuery] = useState("")
-  const [completionStart, setCompletionStart] = useState<number | null>(null)
-  const [completionPosition, setCompletionPosition] = useState({ left: 16, top: 48 })
-  const [completionMaxHeight, setCompletionMaxHeight] = useState(176)
-  const [activeCompletionIndex, setActiveCompletionIndex] = useState(0)
-  const skipResultSync = useRef(false)
-  const resultTextareaRef = useRef<HTMLTextAreaElement>(null)
-  const selectedPreset = presets.find((preset) => preset.id === selectedPresetId) ?? presets[0]
-  const normalizedFlagSearch = flagSearch.trim().toLowerCase()
-  const visibleFlags = flags.filter((flag) => {
-    const matchesSearch = normalizedFlagSearch.length === 0
-      || flag.name.toLowerCase().includes(normalizedFlagSearch)
-      || flag.value.toLowerCase().includes(normalizedFlagSearch)
-      || flag.description.toLowerCase().includes(normalizedFlagSearch)
-      || flag.tags.some((tag) => tag.toLowerCase().includes(normalizedFlagSearch))
-    const matchesFilter = selectedFilterId === "all"
-      || flag.category === selectedFilterId
-      || flag.tags.some((tag) => tag === selectedFilterId)
-    return matchesSearch && matchesFilter
-  }).sort((firstFlag, secondFlag) => {
-    if (flagSort === "az") {
-      return firstFlag.name.localeCompare(secondFlag.name)
-    }
-    if (flagSort === "za") {
-      return secondFlag.name.localeCompare(firstFlag.name)
-    }
-    return 0
-  })
-  const totalFlagPages = Math.max(1, Math.ceil(visibleFlags.length / flagsPerPage))
-  const currentFlagPage = Math.min(flagPage, totalFlagPages)
-  const pagedFlags = visibleFlags.slice((currentFlagPage - 1) * flagsPerPage, currentFlagPage * flagsPerPage)
-  const formatMemory = (value: number) => value < 1 ? `${value * 1024}MB` : `${value}GB`
+  const launch = useLaunchSettings()
+  const flagSelection = useFlagSelection()
   const generatedCommand = generateCommand({
-    platformId,
-    jarName,
+    platformId: launch.platformId,
+    jarName: launch.jarName,
     memory: {
-      minGb: memory[0],
-      maxGb: memory[1],
+      minGb: launch.memory[0],
+      maxGb: launch.memory[1],
     },
-    selectedFlags,
+    selectedFlags: flagSelection.selectedFlags,
     availableFlags: flags,
-    noJline,
-    nogui: !gui,
-    restartMode,
+    noJline: launch.noJline,
+    nogui: !launch.gui,
+    restartMode: launch.restartMode,
   })
-  const resultRows = Math.max(8, resultContent.split("\n").length)
-  const completionOptions = completionStart === null ? [] : flags
-    .filter((flag) => flag.value.toLowerCase().startsWith(completionQuery.toLowerCase()))
-    .slice(0, 8)
-  useEffect(() => {
-    if (skipResultSync.current) {
-      skipResultSync.current = false
-      return
-    }
-    setResultContent(generatedCommand.content)
-  }, [generatedCommand.content])
-  const handlePresetChange = (presetId: string) => {
-    const preset = presets.find((item) => item.id === presetId) ?? customPreset
-    setSelectedPresetId(preset.id)
-    setSelectedFlags(preset.flags)
+  const applyParsedCommand = (content: string) => {
+    const parsed = parseJavaCommand(content, flags)
+    if (!parsed) return
+    if (parsed.minMemory !== undefined) launch.setMemory(([_, max]) => [parsed.minMemory ?? 1, max])
+    if (parsed.maxMemory !== undefined) launch.setMemory(([min]) => [min, parsed.maxMemory ?? 8])
+    if (parsed.jarName) launch.setJarName(parsed.jarName)
+    flagSelection.setSelectedPresetId("custom")
+    flagSelection.setSelectedFlags(parsed.selectedFlags)
+    launch.setNoJline(parsed.noJline)
+    launch.setGui(!parsed.nogui)
   }
-  const handleMaxMemoryChange = (value: string) => {
-    const nextMaxMemory = Number.parseInt(value, 10)
-    if (!Number.isInteger(nextMaxMemory) || nextMaxMemory < 1) {
-      return
-    }
-    setMaxMemory(nextMaxMemory)
-    setMemory(([min, max]) => [Math.min(min, nextMaxMemory), Math.min(max, nextMaxMemory)])
-  }
-  const getLaunchOptionChecked = (optionId: string) => {
-    if (optionId === "gui") return gui
-    if (optionId === "no-jline") return noJline
-    if (optionId === "press-to-restart") return restartMode === "press"
-    if (optionId === "auto-restart") return restartMode === "auto"
-    return false
-  }
-  const handleLaunchOptionChange = (optionId: string, checked: boolean) => {
-    if (optionId === "gui") {
-      setGui(checked)
-    }
-    if (optionId === "no-jline") {
-      setNoJline(checked)
-    }
-    if (optionId === "press-to-restart") {
-      setRestartMode(checked ? "press" : "none")
-    }
-    if (optionId === "auto-restart") {
-      setRestartMode(checked ? "auto" : "none")
-    }
-  }
-  const isFlagSelected = (flagId: string) => selectedFlags.some((flag) => flag.id === flagId)
-  const getSelectedFlagValue = (flag: Flag) => selectedFlags.find((selectedFlag) => selectedFlag.id === flag.id)?.value ?? flag.configurable?.defaultValue ?? ""
-  const handleFlagToggle = (flagId: string) => {
-    setSelectedPresetId("custom")
-    setSelectedFlags((currentFlags) => {
-      if (currentFlags.some((flag) => flag.id === flagId)) {
-        return currentFlags.filter((flag) => flag.id !== flagId)
-      }
-      const flag = flags.find((item) => item.id === flagId)
-      return [
-        ...currentFlags,
-        {
-          id: flagId,
-          value: flag?.configurable?.defaultValue,
-        },
-      ]
-    })
-  }
-  const handleFlagSearchChange = (value: string) => {
-    setFlagSearch(value)
-    setFlagPage(1)
-  }
-  const handleFlagFilterChange = (value: string) => {
-    setSelectedFilterId(value as FilterId)
-    setFlagPage(1)
-  }
-  const handleFlagSortChange = (value: string) => {
-    setFlagSort(value as FlagSort)
-    setFlagPage(1)
-  }
-  const handleFlagValueChange = (flag: Flag, value: string) => {
-    setSelectedPresetId("custom")
-    setSelectedFlags((currentFlags) => currentFlags.map((selectedFlag) => selectedFlag.id === flag.id ? { ...selectedFlag, value } : selectedFlag))
-  }
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(resultContent)
-    setCopyLabel(t("result.copied"))
-    window.setTimeout(() => setCopyLabel(t("result.copy")), 1600)
-  }
-  const handleDownload = () => {
-    const blob = new Blob([resultContent], { type: "text/plain;charset=utf-8" })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement("a")
-    link.href = url
-    link.download = generatedCommand.fileName
-    document.body.append(link)
-    link.click()
-    link.remove()
-    URL.revokeObjectURL(url)
-  }
-  const parseMemoryValue = (value: string) => {
-    const match = value.match(/^-Xm[sx](\d+)([mMgG])$/)
-    if (!match) return null
-    const amount = Number(match[1])
-    return match[2].toLowerCase() === "m" ? amount / 1024 : amount
-  }
-  const resolveFlagFromToken = (token: string): PresetFlag | null => {
-    for (const flag of flags) {
-      if (!flag.configurable && flag.value === token) {
-        return { id: flag.id }
-      }
-      if (flag.configurable) {
-        const [prefix, suffix = ""] = flag.configurable.valueTemplate.split("{value}")
-        if (token.startsWith(prefix) && token.endsWith(suffix)) {
-          return { id: flag.id, value: token.slice(prefix.length, token.length - suffix.length) }
-        }
-      }
-    }
-    return null
-  }
-  const findJavaTokens = (content: string) => {
-    const javaLine = content.split("\n").map((line) => line.trim()).find((line) => line.startsWith("java "))
-    if (javaLine) {
-      return javaLine.match(/"[^"]*"|"[^"]*"|\S+/g)?.map((token) => token.replace(/^[""]|[""]$/g, "")) ?? []
-    }
-    const commandLine = content.split("\n").map((line) => line.trim()).find((line) => line.startsWith("command:"))
-    const commandValue = commandLine?.replace(/^command:\s*/, "")
-    if (!commandValue) return []
-    try {
-      const parsedCommand = JSON.parse(commandValue.replace(/"/g, '"'))
-      if (Array.isArray(parsedCommand) && parsedCommand[0] === "java") {
-        return parsedCommand.map(String)
-      }
-    } catch {
-      return []
-    }
-    return []
-  }
-  const applyJavaCommand = (content: string) => {
-    const tokens = findJavaTokens(content)
-    if (tokens.length === 0) return
-    const nextSelectedFlags: PresetFlag[] = []
-    tokens.forEach((token, index) => {
-      if (token.startsWith("-Xms")) {
-        const parsedMemory = parseMemoryValue(token)
-        if (parsedMemory !== null) setMemory(([_, max]) => [parsedMemory, max])
-      }
-      if (token.startsWith("-Xmx")) {
-        const parsedMemory = parseMemoryValue(token)
-        if (parsedMemory !== null) setMemory(([min]) => [min, parsedMemory])
-      }
-      if (token === "-jar" && tokens[index + 1]) {
-        setJarName(tokens[index + 1])
-      }
-      if (token === "--nojline") {
-        setNoJline(true)
-      }
-      if (token === "nogui") {
-        setGui(false)
-      }
-      const parsedFlag = resolveFlagFromToken(token)
-      if (parsedFlag && !nextSelectedFlags.some((flag) => flag.id === parsedFlag.id)) {
-        nextSelectedFlags.push(parsedFlag)
-      }
-    })
-    setSelectedPresetId("custom")
-    setSelectedFlags(nextSelectedFlags)
-    if (!tokens.includes("--nojline")) setNoJline(false)
-    if (!tokens.includes("nogui")) setGui(true)
-  }
-  const handleResultChange = (value: string) => {
-    skipResultSync.current = true
-    setResultContent(value)
-    applyJavaCommand(value)
-  }
-  const updateCompletion = (value: string, cursorPosition: number) => {
-    const beforeCursor = value.slice(0, cursorPosition)
-    const currentTokenMatch = beforeCursor.match(/(?:^|\s)(-\S*)$/)
-    if (!currentTokenMatch) {
-      setCompletionStart(null)
-      setCompletionQuery("")
-      setActiveCompletionIndex(0)
-      return
-    }
-    const query = currentTokenMatch[1]
-    const textarea = resultTextareaRef.current
-    const linesBeforeCursor = beforeCursor.split("\n")
-    const lineIndex = linesBeforeCursor.length - 1
-    const columnIndex = linesBeforeCursor[lineIndex]?.length ?? 0
-    const lineHeight = 20
-    const characterWidth = 8
-    const padding = 16
-    const textareaWidth = textarea?.clientWidth ?? 640
-    const textareaHeight = textarea?.clientHeight ?? 176
-    const popupWidth = Math.min(448, textareaWidth - padding * 2)
-    const nextTop = padding + (lineIndex + 1) * lineHeight - (textarea?.scrollTop ?? 0)
-    setCompletionStart(cursorPosition - query.length)
-    setCompletionQuery(query)
-    setCompletionPosition({
-      left: Math.min(padding + columnIndex * characterWidth, Math.max(padding, textareaWidth - popupWidth - padding)),
-      top: nextTop,
-    })
-    setCompletionMaxHeight(Math.max(48, Math.min(176, textareaHeight - nextTop - padding)))
-    setActiveCompletionIndex(0)
-  }
-  const handleResultInputChange = (value: string, cursorPosition: number) => {
-    handleResultChange(value)
-    updateCompletion(value, cursorPosition)
-  }
-  const applyCompletion = (flag: Flag) => {
-    if (completionStart === null) return
-    const textarea = resultTextareaRef.current
-    const cursorPosition = textarea?.selectionStart ?? resultContent.length
-    const insertedValue = flag.configurable
-      ? flag.configurable.valueTemplate.replace("{value}", String(flag.configurable.defaultValue))
-      : flag.value
-    const nextContent = `${resultContent.slice(0, completionStart)}${insertedValue}${resultContent.slice(cursorPosition)}`
-    const nextCursorPosition = completionStart + insertedValue.length
-    skipResultSync.current = true
-    setResultContent(nextContent)
-    applyJavaCommand(nextContent)
-    setCompletionStart(null)
-    setCompletionQuery("")
-    window.requestAnimationFrame(() => {
-      textarea?.focus()
-      textarea?.setSelectionRange(nextCursorPosition, nextCursorPosition)
-    })
-  }
-  const handleResultKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (completionOptions.length === 0) return
-    if (event.key === "ArrowDown") {
-      event.preventDefault()
-      setActiveCompletionIndex((index) => (index + 1) % completionOptions.length)
-    }
-    if (event.key === "ArrowUp") {
-      event.preventDefault()
-      setActiveCompletionIndex((index) => (index - 1 + completionOptions.length) % completionOptions.length)
-    }
-    if (event.key === "Enter" || event.key === "Tab") {
-      event.preventDefault()
-      applyCompletion(completionOptions[activeCompletionIndex])
-    }
-    if (event.key === "Escape") {
-      setCompletionStart(null)
-      setCompletionQuery("")
-    }
-  }
+  const result = useResultEditor({ generatedCommand, t, applyParsedCommand })
+
   return (
     <main className="mx-auto box-border flex w-full max-w-6xl flex-1 flex-col gap-8 px-4 py-8 sm:px-6 lg:px-8">
       <section className="grid min-w-0 gap-3">
         <div className="grid min-w-0 gap-3 lg:grid-cols-[1fr_auto] lg:items-end">
           <div className="space-y-3">
-            <h1 className="w-full text-3xl font-semibold tracking-tight sm:text-4xl lg:max-w-3xl">
-              {t("app.title")}
-            </h1>
+            <h1 className="w-full text-3xl font-semibold tracking-tight sm:text-4xl lg:max-w-3xl">{t("app.title")}</h1>
           </div>
-          <Button className="w-fit" onClick={handleDownload}>{t("result.download")}</Button>
+          <Button className="w-fit" onClick={result.handleDownload}>{t("result.download")}</Button>
         </div>
       </section>
       <section className="grid min-w-0 gap-6">
@@ -347,74 +58,19 @@ function AppShell() {
             <CardHeader>
               <CardTitle>{t("basic.title")}</CardTitle>
             </CardHeader>
-            <CardContent className="grid items-start gap-6 md:grid-cols-2">
-              <div className="grid content-start gap-2">
-                <Label htmlFor="jar-name">{t("basic.jarName")}</Label>
-                <Input id="jar-name" value={jarName} onChange={(event) => setJarName(event.target.value)} />
-              </div>
-              <div className="grid gap-2">
-                <Label>{t("basic.memory")}</Label>
-                <div className="pt-4">
-                  <Slider value={memory} onValueChange={setMemory} min={0.5} max={maxMemory} step={0.5} formatValue={formatMemory} aria-label="Memory range" />
-                </div>
-                <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
-                  <span>512MB</span>
-                  <label className="flex items-center gap-1.5">
-                    <Input
-                      className="h-7 w-20 text-xs text-foreground"
-                      value={maxMemory}
-                      onChange={(event) => handleMaxMemoryChange(event.target.value)}
-                      inputMode="numeric"
-                      min={1}
-                      step={1}
-                      type="number"
-                      aria-label={t("basic.maxMemory")}
-                    />
-                    <span>GB</span>
-                  </label>
-                </div>
-              </div>
-              <div className="grid content-start gap-2">
-                <Label>{t("basic.presets")}</Label>
-                <Select value={selectedPresetId} onValueChange={handlePresetChange}>
-                  <SelectTrigger className="h-9 overflow-hidden text-left [&>span:first-child]:min-w-0 [&>span:first-child]:flex-1 [&>span:first-child]:overflow-hidden">
-                    <SelectValue placeholder={t("basic.selectPreset")}>{selectedPreset.name}</SelectValue>
-                  </SelectTrigger>
-                  <SelectContent className="w-(--radix-select-trigger-width) max-w-[calc(100vw-2rem)]">
-                    {presets.map((preset) => (
-                      <SelectItem className="min-w-0" key={preset.id} value={preset.id}>
-                        <span className="grid min-w-0 max-w-full gap-0.5 text-left">
-                          <span className="truncate">{preset.name}</span>
-                          {preset.description ? (
-                            <span className="whitespace-normal wrap-break-word text-xs leading-5 text-muted-foreground">{preset.description}</span>
-                          ) : null}
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label>{t("basic.platform")}</Label>
-                <Select value={platformId} onValueChange={(value) => setPlatformId(value as PlatformId)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t("basic.selectPlatform")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {platforms.map((platform) => {
-                      const PlatformIcon = platformIcons[platform.id]
-                      return (
-                        <SelectItem key={platform.id} value={platform.id}>
-                          <span className="flex items-center gap-2">
-                            <PlatformIcon className="size-4" aria-hidden="true" />
-                            {platform.name}
-                          </span>
-                        </SelectItem>
-                      )
-                    })}
-                  </SelectContent>
-                </Select>
-              </div>
+            <CardContent>
+              <BasicCard
+                jarName={launch.jarName}
+                memory={launch.memory}
+                maxMemory={launch.maxMemory}
+                selectedPresetId={flagSelection.selectedPresetId}
+                platformId={launch.platformId}
+                onJarNameChange={launch.setJarName}
+                onMemoryChange={launch.setMemory}
+                onMaxMemoryChange={launch.handleMaxMemoryChange}
+                onPresetChange={flagSelection.handlePresetChange}
+                onPlatformChange={launch.setPlatformId}
+              />
             </CardContent>
           </Card>
           <aside className="grid gap-6 lg:self-start">
@@ -422,259 +78,39 @@ function AppShell() {
               <CardHeader>
                 <CardTitle>{t("options.title")}</CardTitle>
               </CardHeader>
-              <CardContent className="grid gap-2">
-                {launchOptions.map((option) => (
-                  <Label className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 rounded-md px-1 py-1.5" key={option.id}>
-                    <Checkbox checked={getLaunchOptionChecked(option.id)} onCheckedChange={(checked) => handleLaunchOptionChange(option.id, checked === true)} />
-                    <span>{option.name}</span>
-                    <span className="col-start-2 text-xs leading-5 text-muted-foreground">{option.description}</span>
-                  </Label>
-                ))}
+              <CardContent>
+                <OptionsCard getChecked={launch.getLaunchOptionChecked} onChange={launch.handleLaunchOptionChange} />
               </CardContent>
             </Card>
           </aside>
         </div>
         <div className="grid min-w-0 gap-6">
-          <Card className="min-w-0">
-            <CardHeader>
-              <CardTitle>{t("flags.title")}</CardTitle>
-              <CardDescription>{t("flags.description")}</CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-4">
-              <div className="grid gap-3 sm:grid-cols-[1fr_160px_180px_auto]">
-                <div className="relative">
-                  <FaMagnifyingGlass className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-                  <Input className="pl-9" value={flagSearch} onChange={(event) => handleFlagSearchChange(event.target.value)} placeholder={t("flags.search")} aria-label={t("flags.search")} />
-                </div>
-                <Select value={flagSort} onValueChange={handleFlagSortChange}>
-                  <SelectTrigger>
-                    <span className="flex min-w-0 items-center gap-2">
-                      <FaArrowDownAZ className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-                      <SelectValue placeholder={t("flags.sort")} />
-                    </span>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="default">{t("flags.defaultSort")}</SelectItem>
-                    <SelectItem value="az">{t("flags.az")}</SelectItem>
-                    <SelectItem value="za">{t("flags.za")}</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={selectedFilterId} onValueChange={handleFlagFilterChange}>
-                  <SelectTrigger>
-                    <span className="flex min-w-0 items-center gap-2">
-                      <FaFilter className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-                      <SelectValue placeholder={t("flags.filter")} />
-                    </span>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {flagFilters.map((filter) => (
-                      <SelectItem key={filter.id} value={filter.id}>{filter.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <div className="flex h-9 w-fit justify-self-end overflow-hidden rounded-md border bg-background sm:justify-self-auto" role="group" aria-label="Flag view mode">
-                  <Button
-                    className="h-full w-10 rounded-none p-0"
-                    type="button"
-                    size="icon"
-                    variant={flagView === "cards" ? "secondary" : "ghost"}
-                    onClick={() => setFlagView("cards")}
-                    aria-label={t("flags.cardsView")}
-                    aria-pressed={flagView === "cards"}
-                  >
-                    <FaGrip className="size-4" aria-hidden="true" />
-                  </Button>
-                  <Button
-                    className="h-full w-10 rounded-none p-0"
-                    type="button"
-                    size="icon"
-                    variant={flagView === "list" ? "secondary" : "ghost"}
-                    onClick={() => setFlagView("list")}
-                    aria-label={t("flags.listView")}
-                    aria-pressed={flagView === "list"}
-                  >
-                    <FaList className="size-4" aria-hidden="true" />
-                  </Button>
-                </div>
-              </div>
-              {flagView === "cards" ? (
-                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                  {pagedFlags.map((flag) => (
-                    <button
-                      className={`flex flex-col items-start rounded-lg border p-4 text-left transition-colors hover:bg-accent ${isFlagSelected(flag.id) ? "border-primary bg-accent" : "bg-card"}`}
-                      key={flag.id}
-                      onClick={() => handleFlagToggle(flag.id)}
-                      type="button"
-                      aria-pressed={isFlagSelected(flag.id)}
-                    >
-                      <div className="mb-2 grid gap-2">
-                        <span className="block truncate font-medium" title={flag.value}>
-                          {flag.value}
-                        </span>
-                        <span className="flex min-h-5 flex-wrap gap-1">
-                          {flag.tags.map((tag) => (
-                            <Badge key={tag} variant="outline">{tag}</Badge>
-                          ))}
-                        </span>
-                      </div>
-                      <p className="text-sm text-muted-foreground">{flag.description}</p>
-                      {flag.configurable && isFlagSelected(flag.id) ? (
-                        <label className="mt-4 flex w-full items-center gap-2 text-sm" onClick={(event) => event.stopPropagation()}>
-                          <span className="text-muted-foreground">{t("flags.value")}</span>
-                          <Input
-                            className="h-8"
-                            value={getSelectedFlagValue(flag)}
-                            onChange={(event) => handleFlagValueChange(flag, event.target.value)}
-                            inputMode="numeric"
-                            min={flag.configurable.min}
-                            max={flag.configurable.max}
-                            step={flag.configurable.step}
-                            type="number"
-                            aria-label={`${flag.name} value`}
-                          />
-                          {flag.configurable.unit ? <span className="text-muted-foreground">{flag.configurable.unit}</span> : null}
-                        </label>
-                      ) : null}
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <div className="overflow-hidden rounded-lg border">
-                  {pagedFlags.map((flag) => (
-                    <div className={`border-b last:border-b-0 ${isFlagSelected(flag.id) ? "bg-accent" : "bg-card"}`} key={flag.id}>
-                      <button
-                        className="grid w-full gap-3 p-4 text-left transition-colors hover:bg-accent md:grid-cols-[minmax(0,1fr)_auto] md:items-center"
-                        onClick={() => handleFlagToggle(flag.id)}
-                        type="button"
-                        aria-pressed={isFlagSelected(flag.id)}
-                      >
-                        <span className="grid min-w-0 gap-1">
-                          <span className="truncate font-medium" title={flag.value}>{flag.value}</span>
-                          <span className="text-sm text-muted-foreground">{flag.description}</span>
-                        </span>
-                        <span className="flex flex-wrap gap-1 md:justify-end">
-                          {flag.tags.map((tag) => (
-                            <Badge key={tag} variant="outline">{tag}</Badge>
-                          ))}
-                        </span>
-                      </button>
-                      {flag.configurable && isFlagSelected(flag.id) ? (
-                        <label className="flex items-center gap-2 px-4 pb-4 text-sm">
-                          <span className="text-muted-foreground">{t("flags.value")}</span>
-                          <Input
-                            className="h-8 max-w-40"
-                            value={getSelectedFlagValue(flag)}
-                            onChange={(event) => handleFlagValueChange(flag, event.target.value)}
-                            inputMode="numeric"
-                            min={flag.configurable.min}
-                            max={flag.configurable.max}
-                            step={flag.configurable.step}
-                            type="number"
-                            aria-label={`${flag.name} value`}
-                          />
-                          {flag.configurable.unit ? <span className="text-muted-foreground">{flag.configurable.unit}</span> : null}
-                        </label>
-                      ) : null}
-                    </div>
-                  ))}
-                </div>
-              )}
-              {visibleFlags.length === 0 ? (
-                <p className="rounded-lg border-dashed p-6 text-center text-sm text-muted-foreground">{t("flags.none")}</p>
-              ) : null}
-              {visibleFlags.length > 0 ? (
-                <div className="grid gap-3 border-t pt-4 text-sm text-muted-foreground sm:grid-cols-[1fr_auto_1fr] sm:items-center">
-                  <span>
-                    {t("flags.showing", { start: (currentFlagPage - 1) * flagsPerPage + 1, end: Math.min(currentFlagPage * flagsPerPage, visibleFlags.length), total: visibleFlags.length })}
-                  </span>
-                  <div className="flex items-center justify-center gap-2">
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={() => setFlagPage((page) => Math.max(1, page - 1))}
-                      disabled={currentFlagPage === 1}
-                    >
-                      {t("flags.previous")}
-                    </Button>
-                    <span className="min-w-20 text-center">
-                      {currentFlagPage} / {totalFlagPages}
-                    </span>
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={() => setFlagPage((page) => Math.min(totalFlagPages, page + 1))}
-                      disabled={currentFlagPage === totalFlagPages}
-                    >
-                      {t("flags.next")}
-                    </Button>
-                  </div>
-                  <div className="flex justify-start sm:justify-end">
-                    <Button className="text-foreground" variant="outline">{t("flags.submit")}</Button>
-                  </div>
-                </div>
-              ) : null}
-            </CardContent>
-          </Card>
-          <Card className="min-w-0">
-            <CardHeader>
-              <CardTitle>{t("result.title")}</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-3">
-              <div className="relative min-w-0 overflow-hidden rounded-lg border bg-muted">
-                <div className="group absolute right-3 top-3 z-10 flex items-center">
-                  <span className="pointer-events-none mr-2 hidden rounded-md bg-primary px-2.5 py-1.5 text-xs whitespace-nowrap text-primary-foreground shadow-sm group-hover:block">
-                    {copyLabel}
-                  </span>
-                  <Button size="icon" variant="secondary" onClick={handleCopy} aria-label={t("result.copyCode")}>
-                    {copyLabel === t("result.copied") ? <FaCheck className="size-4" aria-hidden="true" /> : <FaCopy className="size-4" aria-hidden="true" />}
-                  </Button>
-                </div>
-                <textarea
-                  ref={resultTextareaRef}
-                  className="w-full resize-y bg-transparent p-4 pr-24 text-sm text-foreground outline-none"
-                  value={resultContent}
-                  onChange={(event) => handleResultInputChange(event.target.value, event.target.selectionStart)}
-                  onKeyDown={handleResultKeyDown}
-                  onClick={(event) => updateCompletion(event.currentTarget.value, event.currentTarget.selectionStart)}
-                  aria-label={t("result.output")}
-                  rows={resultRows}
-                  spellCheck={false}
-                />
-                {completionOptions.length > 0 ? (
-                  <div
-                    className="absolute z-20 w-[min(28rem,calc(100%-2rem))] overflow-auto rounded-lg border bg-popover p-1 text-sm text-popover-foreground shadow-lg"
-                    style={{ left: completionPosition.left, top: completionPosition.top, maxHeight: completionMaxHeight }}
-                  >
-                    {completionOptions.map((flag, index) => {
-                      const completionValue = flag.configurable ? flag.configurable.valueTemplate.replace("{value}", String(flag.configurable.defaultValue)) : flag.value
-                      return (
-                        <button
-                          className={`w-full truncate rounded-md px-3 py-1.5 text-left ${index === activeCompletionIndex ? "bg-accent" : "hover:bg-accent"}`}
-                          key={flag.id}
-                          type="button"
-                          onMouseDown={(event) => {
-                            event.preventDefault()
-                            applyCompletion(flag)
-                          }}
-                        >
-                          <span>{completionValue.slice(0, completionQuery.length)}</span>
-                          <span className="text-muted-foreground">{completionValue.slice(completionQuery.length)}</span>
-                        </button>
-                      )
-                    })}
-                  </div>
-                ) : null}
-              </div>
-              <div className="flex flex-col gap-2 sm:flex-row sm:justify-between">
-                <Button onClick={handleDownload}>{t("result.download")}</Button>
-                <Button variant="outline">{t("result.submit")}</Button>
-              </div>
-            </CardContent>
-          </Card>
+          <FlagsPanel
+            flags={flags}
+            selectedFlags={flagSelection.selectedFlags}
+            onFlagToggle={flagSelection.handleFlagToggle}
+            onFlagValueChange={flagSelection.handleFlagValueChange}
+          />
+          <ResultPanel
+            resultContent={result.resultContent}
+            copyLabel={result.copyLabel}
+            resultRows={result.resultRows}
+            completionOptions={result.completionOptions}
+            completionQuery={result.completionQuery}
+            completionPosition={result.completionPosition}
+            completionMaxHeight={result.completionMaxHeight}
+            activeCompletionIndex={result.activeCompletionIndex}
+            textareaRef={result.resultTextareaRef}
+            onCopy={result.handleCopy}
+            onDownload={result.handleDownload}
+            onResultInputChange={result.handleResultInputChange}
+            onResultKeyDown={result.handleResultKeyDown}
+            onCompletionUpdate={result.updateCompletion}
+            onCompletionApply={result.applyCompletion}
+          />
         </div>
       </section>
     </main>
   )
 }
-
 export { AppShell }
