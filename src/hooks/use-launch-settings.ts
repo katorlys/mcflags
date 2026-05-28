@@ -20,14 +20,14 @@ function useLaunchSettings() {
   const getLaunchOptionChecked = (optionId: string) => {
     if (optionId === "gui") return gui
     if (optionId === "no-jline") return noJline
-    if (optionId === "press-to-restart") return restartMode === "press"
+    if (optionId === "press-restart") return restartMode === "press"
     if (optionId === "auto-restart") return restartMode === "auto"
     return false
   }
   const handleLaunchOptionChange = (optionId: string, checked: boolean) => {
     if (optionId === "gui") setGui(checked)
     if (optionId === "no-jline") setNoJline(checked)
-    if (optionId === "press-to-restart") setRestartMode(checked ? "press" : "none")
+    if (optionId === "press-restart") setRestartMode(checked ? "press" : "none")
     if (optionId === "auto-restart") setRestartMode(checked ? "auto" : "none")
   }
 

@@ -3,6 +3,7 @@ export { flags } from './flags'
 export { launchOptions } from './options'
 export { platforms } from './platforms'
 export { presets } from './presets'
+export type { PresetId } from './presets'
 export type {
   CoreTag,
   DownloadFormat,
@@ -17,6 +18,5 @@ export type {
   PlatformId,
   Preset,
   PresetFlag,
-  PresetId,
   RestartMode,
 } from './types'

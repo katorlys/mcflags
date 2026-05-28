@@ -24,15 +24,13 @@ type Flag = {
   }
 }
 
-type PresetId = "custom" | "aikars" | "common" | "waterfall-velocity"
-
 type PresetFlag = {
   id: string
   value?: number | string
 }
 
 type Preset = {
-  id: PresetId
+  id: string
   name: string
   description: string
   flags: PresetFlag[]
@@ -52,7 +50,7 @@ type Platform = {
 
 type RestartMode = "none" | "press" | "auto"
 
-type LaunchOptionId = "gui" | "no-jline" | "press-to-restart" | "auto-restart"
+type LaunchOptionId = "gui" | "no-jline" | "press-restart" | "auto-restart"
 
 type LaunchOption = {
   id: LaunchOptionId
@@ -81,6 +79,5 @@ export type {
   PlatformId,
   Preset,
   PresetFlag,
-  PresetId,
   RestartMode,
 }

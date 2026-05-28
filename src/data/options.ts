@@ -14,7 +14,7 @@ const launchOptions = [
     defaultChecked: true,
   },
   {
-    id: "press-to-restart",
+    id: "press-restart",
     name: "Press to restart",
     description: "Press any key to restart the server.",
     defaultChecked: false,
