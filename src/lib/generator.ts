@@ -1,5 +1,8 @@
 import type { Flag, PlatformId, PresetFlag, RestartMode } from '@/data'
 
+const MIN_MEMORY_GB = 1
+const MB_PER_GB = 1024
+
 type MemorySize = {
   minGb: number
   maxGb: number
@@ -22,8 +25,8 @@ type GeneratedCommand = {
 }
 
 const formatMemory = (value: number) => {
-  if (value < 1 || !Number.isInteger(value)) {
-    return `${Math.round(value * 1024)}M`
+  if (value < MIN_MEMORY_GB || !Number.isInteger(value)) {
+    return `${Math.round(value * MB_PER_GB)}M`
   }
   return `${value}G`
 }

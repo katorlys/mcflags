@@ -8,7 +8,10 @@ import type { FilterId, Flag, PresetFlag } from '@/data'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FaArrowDownAZ, FaFilter, FaGrip, FaList, FaMagnifyingGlass } from 'react-icons/fa6'
-const flagsPerPage = 9
+
+const FLAGS_PER_PAGE = 9
+const SUBMIT_FLAG_URL = "https://github.com/katorlys/mcflags/issues/new?template=1-submit-flag.yml"
+
 type FlagSort = "default" | "az" | "za"
 type FlagView = "cards" | "list"
 
@@ -46,9 +49,9 @@ function FlagsPanel({ flags, selectedFlags, onFlagToggle, onFlagValueChange }: F
     }
     return 0
   })
-  const totalFlagPages = Math.max(1, Math.ceil(visibleFlags.length / flagsPerPage))
+  const totalFlagPages = Math.max(1, Math.ceil(visibleFlags.length / FLAGS_PER_PAGE))
   const currentFlagPage = Math.min(flagPage, totalFlagPages)
-  const pagedFlags = visibleFlags.slice((currentFlagPage - 1) * flagsPerPage, currentFlagPage * flagsPerPage)
+  const pagedFlags = visibleFlags.slice((currentFlagPage - 1) * FLAGS_PER_PAGE, currentFlagPage * FLAGS_PER_PAGE)
   const isFlagSelected = (flagId: string) => selectedFlags.some((flag) => flag.id === flagId)
   const getSelectedFlagValue = (flag: Flag) => selectedFlags.find((selectedFlag) => selectedFlag.id === flag.id)?.value ?? flag.configurable?.defaultValue ?? ""
   const handleFlagSearchChange = (value: string) => {
@@ -158,7 +161,7 @@ function FlagsPanel({ flags, selectedFlags, onFlagToggle, onFlagValueChange }: F
         {visibleFlags.length === 0 ? <p className="rounded-lg border-dashed p-6 text-center text-sm text-muted-foreground">{t("flags.none")}</p> : null}
         {visibleFlags.length > 0 ? (
           <div className="grid gap-3 border-t pt-4 text-sm text-muted-foreground sm:grid-cols-[1fr_auto_1fr] sm:items-center">
-            <span>{t("flags.showing", { start: (currentFlagPage - 1) * flagsPerPage + 1, end: Math.min(currentFlagPage * flagsPerPage, visibleFlags.length), total: visibleFlags.length })}</span>
+            <span>{t("flags.showing", { start: (currentFlagPage - 1) * FLAGS_PER_PAGE + 1, end: Math.min(currentFlagPage * FLAGS_PER_PAGE, visibleFlags.length), total: visibleFlags.length })}</span>
             <div className="flex items-center justify-center gap-2">
               <Button type="button" size="sm" onClick={() => setFlagPage((page) => Math.max(1, page - 1))} disabled={currentFlagPage === 1}>{t("flags.previous")}</Button>
               <span className="min-w-20 text-center">{currentFlagPage} / {totalFlagPages}</span>
@@ -166,7 +169,7 @@ function FlagsPanel({ flags, selectedFlags, onFlagToggle, onFlagValueChange }: F
             </div>
             <div className="flex justify-start sm:justify-end">
               <Button className="text-foreground" variant="outline" asChild>
-                <a href="https://github.com/katorlys/mcflags/issues/new?template=1-submit-flag.yml" target="_blank" rel="noreferrer">{t("flags.submit")}</a>
+                <a href={SUBMIT_FLAG_URL} target="_blank" rel="noreferrer">{t("flags.submit")}</a>
               </Button>
             </div>
           </div>

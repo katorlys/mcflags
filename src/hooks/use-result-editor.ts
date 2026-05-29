@@ -4,6 +4,18 @@ import type { GeneratedCommand } from '@/lib/generator'
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import type { TFunction } from 'i18next'
 
+const COPY_LABEL_RESET_DELAY = 1600
+const MAX_COMPLETIONS = 16
+const MIN_RESULT_ROWS = 8
+const COMPLETION_STYLES = {
+  LINE_HEIGHT: 20,
+  CHAR_WIDTH: 8,
+  PADDING: 16,
+  POPUP_WIDTH: 448,
+  MIN_HEIGHT: 48,
+  MAX_HEIGHT: 176,
+}
+
 type ApplyParsedCommand = (content: string) => void
 
 type UseResultEditorInput = {
@@ -17,15 +29,15 @@ function useResultEditor({ generatedCommand, t, applyParsedCommand }: UseResultE
   const [resultContent, setResultContent] = useState("")
   const [completionQuery, setCompletionQuery] = useState("")
   const [completionStart, setCompletionStart] = useState<number | null>(null)
-  const [completionPosition, setCompletionPosition] = useState({ left: 16, top: 48 })
-  const [completionMaxHeight, setCompletionMaxHeight] = useState(176)
+  const [completionPosition, setCompletionPosition] = useState({ left: COMPLETION_STYLES.PADDING, top: 48 })
+  const [completionMaxHeight, setCompletionMaxHeight] = useState(COMPLETION_STYLES.MAX_HEIGHT)
   const [activeCompletionIndex, setActiveCompletionIndex] = useState(0)
   const skipResultSync = useRef(false)
   const resultTextareaRef = useRef<HTMLTextAreaElement>(null)
-  const resultRows = Math.max(8, resultContent.split("\n").length)
+  const resultRows = Math.max(MIN_RESULT_ROWS, resultContent.split("\n").length)
   const completionOptions = completionStart === null ? [] : flags
     .filter((flag) => flag.value.toLowerCase().startsWith(completionQuery.toLowerCase()))
-    .slice(0, 8)
+    .slice(0, MAX_COMPLETIONS)
   useEffect(() => {
     if (skipResultSync.current) {
       skipResultSync.current = false
@@ -36,7 +48,7 @@ function useResultEditor({ generatedCommand, t, applyParsedCommand }: UseResultE
   const handleCopy = async () => {
     await navigator.clipboard.writeText(resultContent)
     setCopyLabel(t("result.copied"))
-    window.setTimeout(() => setCopyLabel(t("result.copy")), 1600)
+    window.setTimeout(() => setCopyLabel(t("result.copy")), COPY_LABEL_RESET_DELAY)
   }
   const handleDownload = () => {
     const blob = new Blob([resultContent], { type: "text/plain;charset=utf-8" })
@@ -68,20 +80,18 @@ function useResultEditor({ generatedCommand, t, applyParsedCommand }: UseResultE
     const linesBeforeCursor = beforeCursor.split("\n")
     const lineIndex = linesBeforeCursor.length - 1
     const columnIndex = linesBeforeCursor[lineIndex]?.length ?? 0
-    const lineHeight = 20
-    const characterWidth = 8
-    const padding = 16
+    const { LINE_HEIGHT, CHAR_WIDTH, PADDING, POPUP_WIDTH, MIN_HEIGHT, MAX_HEIGHT } = COMPLETION_STYLES
     const textareaWidth = textarea?.clientWidth ?? 640
     const textareaHeight = textarea?.clientHeight ?? 176
-    const popupWidth = Math.min(448, textareaWidth - padding * 2)
-    const nextTop = padding + (lineIndex + 1) * lineHeight - (textarea?.scrollTop ?? 0)
+    const popupWidth = Math.min(POPUP_WIDTH, textareaWidth - PADDING * 2)
+    const nextTop = PADDING + (lineIndex + 1) * LINE_HEIGHT - (textarea?.scrollTop ?? 0)
     setCompletionStart(cursorPosition - query.length)
     setCompletionQuery(query)
     setCompletionPosition({
-      left: Math.min(padding + columnIndex * characterWidth, Math.max(padding, textareaWidth - popupWidth - padding)),
+      left: Math.min(PADDING + columnIndex * CHAR_WIDTH, Math.max(PADDING, textareaWidth - popupWidth - PADDING)),
       top: nextTop,
     })
-    setCompletionMaxHeight(Math.max(48, Math.min(176, textareaHeight - nextTop - padding)))
+    setCompletionMaxHeight(Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, textareaHeight - nextTop - PADDING)))
     setActiveCompletionIndex(0)
   }
   const handleResultInputChange = (value: string, cursorPosition: number) => {

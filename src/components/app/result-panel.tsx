@@ -5,6 +5,8 @@ import type { KeyboardEvent, RefObject } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FaCheck, FaCopy } from 'react-icons/fa6'
 
+const SUBMIT_FLAG_SET_URL = "https://github.com/katorlys/mcflags/issues/new?template=2-submit-flag-set.yml"
+
 type CompletionPosition = {
   left: number
   top: number
@@ -100,7 +102,7 @@ function ResultPanel({
         <div className="flex flex-col gap-2 sm:flex-row sm:justify-between">
           <Button onClick={onDownload}>{t("result.download")}</Button>
           <Button variant="outline" asChild>
-            <a href="https://github.com/katorlys/mcflags/issues/new?template=2-submit-flag-set.yml" target="_blank" rel="noreferrer">{t("result.submit")}</a>
+            <a href={SUBMIT_FLAG_SET_URL} target="_blank" rel="noreferrer">{t("result.submit")}</a>
           </Button>
         </div>
       </CardContent>

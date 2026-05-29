@@ -1,4 +1,4 @@
-import type { PlatformId, RestartMode } from '@/data'
+import type { LaunchOptionId, PlatformId, RestartMode } from '@/data'
 import { useState } from 'react'
 
 function useLaunchSettings() {
@@ -17,18 +17,33 @@ function useLaunchSettings() {
     setMaxMemory(nextMaxMemory)
     setMemory(([min, max]) => [Math.min(min, nextMaxMemory), Math.min(max, nextMaxMemory)])
   }
-  const getLaunchOptionChecked = (optionId: string) => {
-    if (optionId === "gui") return gui
-    if (optionId === "no-jline") return noJline
-    if (optionId === "press-restart") return restartMode === "press"
-    if (optionId === "auto-restart") return restartMode === "auto"
-    return false
+  const getLaunchOptionChecked = (optionId: LaunchOptionId) => {
+    switch (optionId) {
+      case "gui":
+        return gui
+      case "no-jline":
+        return noJline
+      case "press-restart":
+        return restartMode === "press"
+      case "auto-restart":
+        return restartMode === "auto"
+    }
   }
-  const handleLaunchOptionChange = (optionId: string, checked: boolean) => {
-    if (optionId === "gui") setGui(checked)
-    if (optionId === "no-jline") setNoJline(checked)
-    if (optionId === "press-restart") setRestartMode(checked ? "press" : "none")
-    if (optionId === "auto-restart") setRestartMode(checked ? "auto" : "none")
+  const handleLaunchOptionChange = (optionId: LaunchOptionId, checked: boolean) => {
+    switch (optionId) {
+      case "gui":
+        setGui(checked)
+        break
+      case "no-jline":
+        setNoJline(checked)
+        break
+      case "press-restart":
+        setRestartMode(checked ? "press" : "none")
+        break
+      case "auto-restart":
+        setRestartMode(checked ? "auto" : "none")
+        break
+    }
   }
 
   return {

@@ -13,7 +13,8 @@ const parseMemory = (value: string) => {
   const match = value.match(/^-Xm[sx](\d+)([mMgG])$/)
   if (!match) return null
   const amount = Number(match[1])
-  return match[2].toLowerCase() === "m" ? amount / 1024 : amount
+  const unit = match[2].toLowerCase()
+  return unit === "m" ? amount / 1024 : amount
 }
 
 const findFlagFromToken = (token: string, flags: Flag[]): PresetFlag | null => {

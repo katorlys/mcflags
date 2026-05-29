@@ -32,8 +32,13 @@ function AppShell() {
   const applyParsedCommand = (content: string) => {
     const parsed = parseJavaCommand(content, flags)
     if (!parsed) return
-    if (parsed.minMemory !== undefined) launch.setMemory(([_, max]) => [parsed.minMemory ?? 1, max])
-    if (parsed.maxMemory !== undefined) launch.setMemory(([min]) => [min, parsed.maxMemory ?? 8])
+    if (parsed.minMemory !== undefined && parsed.maxMemory !== undefined) {
+      launch.setMemory([parsed.minMemory, parsed.maxMemory])
+    } else if (parsed.minMemory !== undefined) {
+      launch.setMemory(([_, max]) => [parsed.minMemory!, max])
+    } else if (parsed.maxMemory !== undefined) {
+      launch.setMemory(([min]) => [min, parsed.maxMemory!])
+    }
     if (parsed.jarName) launch.setJarName(parsed.jarName)
     flagSelection.setSelectedPresetId("custom")
     flagSelection.setSelectedFlags(parsed.selectedFlags)

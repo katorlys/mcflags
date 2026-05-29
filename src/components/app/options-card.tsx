@@ -1,10 +1,11 @@
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { launchOptions } from '@/data'
+import type { LaunchOptionId } from '@/data'
 
 type LaunchOptionsCardProps = {
-  getChecked: (optionId: string) => boolean
-  onChange: (optionId: string, checked: boolean) => void
+  getChecked: (optionId: LaunchOptionId) => boolean
+  onChange: (optionId: LaunchOptionId, checked: boolean) => void
 }
 
 function OptionsCard({ getChecked, onChange }: LaunchOptionsCardProps) {
