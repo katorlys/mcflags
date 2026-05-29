@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: GitHub Discussions
+    url: https://katorly.com/discussions
+    about: If you need help, please start a discussion instead of opening an issue.
+  - name: Discord
+    url: https://katorly.com/discord
+    about: Join our Discord server to chat with us and other users in real time.
+  - name: Contact
+    url: https://katorly.com/contact
+    about: For private inquiries or other non-public matters, please contact us.

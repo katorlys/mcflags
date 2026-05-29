@@ -165,7 +165,9 @@ function FlagsPanel({ flags, selectedFlags, onFlagToggle, onFlagValueChange }: F
               <Button type="button" size="sm" onClick={() => setFlagPage((page) => Math.min(totalFlagPages, page + 1))} disabled={currentFlagPage === totalFlagPages}>{t("flags.next")}</Button>
             </div>
             <div className="flex justify-start sm:justify-end">
-              <Button className="text-foreground" variant="outline">{t("flags.submit")}</Button>
+              <Button className="text-foreground" variant="outline" asChild>
+                <a href="https://github.com/katorlys/mcflags/issues/new?template=1-submit-flag.yml" target="_blank" rel="noreferrer">{t("flags.submit")}</a>
+              </Button>
             </div>
           </div>
         ) : null}

@@ -1,0 +1,69 @@
+name: 🚩 Flag
+description: Submit a JVM flag
+title: "[Flag] "
+type: Suggestion
+body:
+  - type: input
+    attributes:
+      label: 🚩 Flag
+      description: |
+        Paste the JVM flag here. Use one issue per flag.  
+        If it accepts a value, fill out the recommended default value, valid range and unit below.
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Default Value
+      placeholder: "Enter 'none' if not applicable."
+    validations:
+      required: false
+  - type: input
+    attributes:
+      label: Range
+      placeholder: "Enter 'none' if not applicable."
+    validations:
+      required: false
+  - type: input
+    attributes:
+      label: Unit
+      placeholder: "Enter 'none' if not applicable."
+    validations:
+      required: false
+  - type: textarea
+    attributes:
+      label: 📝 Description
+      description: |
+        What does this flag do? Why should it be added?  
+        Add links to official docs or other references if available.
+    validations:
+      required: true
+  - type: dropdown
+    attributes:
+      label: 🗂️ Category
+      description: Choose a suitable category.
+      options:
+        - gc
+        - memory
+        - performance
+        - diagnostic
+        - compatibility
+        - other
+      default: 5
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: 🏷️ Tags
+      description: |
+        Suggest tags if this flag is relevant to specific server cores, use commas to separate.  
+        Examples: bukkit, spigot, paper, folia, waterfall, velocity, forge, fabric, etc.
+      placeholder: "Enter 'none' if not applicable."
+    validations:
+      required: false
+  - type: textarea
+    attributes:
+      label: 💬 Additional information
+      description: |
+        Add any other context that may help us review the flag.
+    validations:
+      required: false

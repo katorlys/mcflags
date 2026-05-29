@@ -1,0 +1,36 @@
+name: 🎌 Flag set
+description: Submit your own flag set
+title: "[Flag Set] "
+type: Suggestion
+body:
+  - type: input
+    attributes:
+      label: ✏️ Name
+      description: Enter the flag set name.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 📝 Description
+      description: |
+        Describe what this flag set is for and when users should choose it.
+      value: "This flag set is suitable for ..."
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 💻 Full command
+      description: |
+        Paste the full Java command, or list all JVM flags in this set.  
+        Available placeholders: [Memory], [server.jar], [nojline], [nogui].
+      value: |
+        java -Xmx[Memory] -Xms[Memory] -jar [server.jar] [nojline] [nogui]
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 💬 Additional information
+      description: |
+        Add any other context that may help us review the flag set.
+    validations:
+      required: false

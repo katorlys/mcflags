@@ -99,7 +99,9 @@ function ResultPanel({
         </div>
         <div className="flex flex-col gap-2 sm:flex-row sm:justify-between">
           <Button onClick={onDownload}>{t("result.download")}</Button>
-          <Button variant="outline">{t("result.submit")}</Button>
+          <Button variant="outline" asChild>
+            <a href="https://github.com/katorlys/mcflags/issues/new?template=2-submit-flag-set.yml" target="_blank" rel="noreferrer">{t("result.submit")}</a>
+          </Button>
         </div>
       </CardContent>
     </Card>
