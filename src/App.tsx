@@ -4,15 +4,15 @@ import { Header } from '@/components/layout/header'
 import { useTheme } from '@/hooks/use-theme'
 
 function App() {
-    const { theme, setTheme } = useTheme()
+  const { theme, setTheme } = useTheme()
 
-    return (
-        <div className="min-h-screen bg-background text-foreground">
-            <Header theme={theme} onThemeChange={setTheme} />
-            <AppShell />
-            <Footer />
-        </div>
-    )
+  return (
+    <div className="min-h-screen bg-background text-foreground">
+      <Header theme={theme} onThemeChange={setTheme} />
+      <AppShell />
+      <Footer />
+    </div>
+  )
 }
 
 export default App
