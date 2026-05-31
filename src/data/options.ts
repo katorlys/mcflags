@@ -3,26 +3,26 @@ import type { LaunchOption } from './types'
 const launchOptions = [
   {
     id: "gui",
-    name: "GUI",
-    description: "Launches a built-in vanilla control panel for the server, which is a desktop-only feature.",
+    name: "options.gui.name",
+    description: "options.gui.description",
     defaultChecked: false,
   },
   {
     id: "no-jline",
-    name: "No JLine",
-    description: "Disables Bukkit's JLine console, which is a Windows-only feature.",
+    name: "options.noJline.name",
+    description: "options.noJline.description",
     defaultChecked: true,
   },
   {
     id: "press-restart",
-    name: "Press to restart",
-    description: "Press any key to restart the server.",
+    name: "options.pressRestart.name",
+    description: "options.pressRestart.description",
     defaultChecked: false,
   },
   {
     id: "auto-restart",
-    name: "Auto-restart",
-    description: " Automatically restarts the server after a countdown.",
+    name: "options.autoRestart.name",
+    description: "options.autoRestart.description",
     defaultChecked: false,
   },
 ] satisfies LaunchOption[]

@@ -25,6 +25,40 @@ const en = {
   },
   options: {
     title: "Options",
+    gui: {
+      name: "GUI",
+      description: "Launches a built-in vanilla control panel for the server, which is a desktop-only feature.",
+    },
+    noJline: {
+      name: "No JLine",
+      description: "Disables Bukkit's JLine console, which is a Windows-only feature.",
+    },
+    pressRestart: {
+      name: "Press to restart",
+      description: "Press any key to restart the server.",
+    },
+    autoRestart: {
+      name: "Auto-restart",
+      description: "Automatically restarts the server after a countdown.",
+    },
+  },
+  presets: {
+    custom: {
+      name: "Custom",
+      description: "",
+    },
+    aikars: {
+      name: "Aikar's",
+      description: "A set of JVM flags designed to improve server performance.",
+    },
+    common: {
+      name: "Common",
+      description: "Another set of flags suitable for most Bukkit/Spigot/Paper servers.",
+    },
+    waterfallVelocity: {
+      name: "Waterfall/Velocity",
+      description: "Official Velocity flags that tune the G1 garbage collector for Velocity's workload.",
+    },
   },
   flags: {
     title: "Flags",

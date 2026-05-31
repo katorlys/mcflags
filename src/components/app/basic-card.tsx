@@ -73,15 +73,15 @@ function BasicCard({
         <Label>{t("basic.presets")}</Label>
         <Select value={selectedPresetId} onValueChange={onPresetChange}>
           <SelectTrigger className="h-9 overflow-hidden text-left [&>span:first-child]:min-w-0 [&>span:first-child]:flex-1 [&>span:first-child]:overflow-hidden">
-            <SelectValue placeholder={t("basic.selectPreset")}>{selectedPreset.name}</SelectValue>
+            <SelectValue placeholder={t("basic.selectPreset")}>{t(selectedPreset.name)}</SelectValue>
           </SelectTrigger>
           <SelectContent className="w-(--radix-select-trigger-width) max-w-[calc(100vw-2rem)]">
             {presets.map((preset) => (
               <SelectItem className="min-w-0" key={preset.id} value={preset.id}>
                 <span className="grid min-w-0 max-w-full gap-0.5 text-left">
-                  <span className="truncate">{preset.name}</span>
-                  {preset.description ? (
-                    <span className="whitespace-normal wrap-break-word text-xs leading-5 text-muted-foreground">{preset.description}</span>
+                  <span className="truncate">{t(preset.name)}</span>
+                  {t(preset.description) ? (
+                    <span className="whitespace-normal wrap-break-word text-xs leading-5 text-muted-foreground">{t(preset.description)}</span>
                   ) : null}
                 </span>
               </SelectItem>

@@ -52,7 +52,7 @@ function AppShell() {
       <section className="grid min-w-0 gap-3">
         <div className="grid min-w-0 gap-3 lg:grid-cols-[1fr_auto] lg:items-end">
           <div className="space-y-3">
-            <h1 className="w-full text-3xl font-semibold tracking-tight sm:text-4xl lg:max-w-3xl">{t("app.title")}</h1>
+            <h1 className="w-full text-3xl font-semibold tracking-tight sm:text-4xl lg:max-w-4xl">{t("app.title")}</h1>
           </div>
           <Button className="w-fit" onClick={result.handleDownload}>{t("result.download")}</Button>
         </div>

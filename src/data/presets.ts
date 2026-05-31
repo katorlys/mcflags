@@ -3,15 +3,15 @@ import type { Preset } from './types'
 const presets = [
   {
     id: "custom",
-    name: "Custom",
-    description: " ",
+    name: "presets.custom.name",
+    description: "presets.custom.description",
     flags: [],
     coreTags: [],
   },
   {
     id: "aikars",
-    name: "Aikar's",
-    description: "A set of JVM flags designed to improve server performance.",
+    name: "presets.aikars.name",
+    description: "presets.aikars.description",
     flags: [
       { id: "always-pre-touch" },
       { id: "disable-explicit-gc" },
@@ -38,8 +38,8 @@ const presets = [
   },
   {
     id: "common",
-    name: "Common",
-    description: "Another set of flags suitable for most Bukkit/Spigot/Paper servers.",
+    name: "presets.common.name",
+    description: "presets.common.description",
     flags: [
       { id: "always-pre-touch" },
       { id: "disable-explicit-gc" },
@@ -57,8 +57,8 @@ const presets = [
   },
   {
     id: "waterfall-velocity",
-    name: "Waterfall/Velocity",
-    description: "Official Velocity flags that tunes the G1 garbage collector for Velocity's workload.",
+    name: "presets.waterfallVelocity.name",
+    description: "presets.waterfallVelocity.description",
     flags: [
       { id: "use-g1gc" },
       { id: "g1-heap-region-size", value: 4 },

@@ -25,6 +25,40 @@ const zh = {
   },
   options: {
     title: "选项",
+    gui: {
+      name: "GUI",
+      description: "启动服务端自带的原版控制面板，仅桌面环境可用。",
+    },
+    noJline: {
+      name: "禁用 JLine",
+      description: "禁用 Bukkit 的 JLine 控制台，仅 Windows 平台可用。",
+    },
+    pressRestart: {
+      name: "按下重启",
+      description: "服务器关闭后，按任意键重启服务器。",
+    },
+    autoRestart: {
+      name: "自动重启",
+      description: "服务器关闭后，倒计时结束自动重启服务器。",
+    },
+  },
+  presets: {
+    custom: {
+      name: "自定义",
+      description: "",
+    },
+    aikars: {
+      name: "Aikar's",
+      description: "一组用于改善服务器性能的参数集。",
+    },
+    common: {
+      name: "通用",
+      description: "另一组适合大多数 Bukkit/Spigot/Paper 服务器的参数集。",
+    },
+    waterfallVelocity: {
+      name: "Waterfall/Velocity",
+      description: "Velocity 官方的针对 Velocity 的负载调整 G1 垃圾收集器的参数集。",
+    },
   },
   flags: {
     title: "参数",
