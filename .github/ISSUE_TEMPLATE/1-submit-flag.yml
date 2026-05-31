@@ -42,11 +42,11 @@ body:
       label: 🗂️ Category
       description: Choose a suitable category.
       options:
+        - runtime
         - gc
         - memory
         - performance
         - diagnostic
-        - compatibility
         - other
       default: 5
     validations:
@@ -56,7 +56,7 @@ body:
       label: 🏷️ Tags
       description: |
         Suggest tags if this flag is relevant to specific server cores, use commas to separate.  
-        Examples: bukkit, spigot, paper, folia, waterfall, velocity, forge, fabric, etc.
+        Examples: spigot, paper, folia, waterfall, velocity, forge, fabric, sponge, etc.
       placeholder: "Enter 'none' if not applicable."
     validations:
       required: false

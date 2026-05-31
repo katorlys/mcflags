@@ -268,7 +268,7 @@ const flags = [
     value: "-Dfml.queryResult=confirm",
     name: "fml.queryResult confirm",
     description: "Automatically confirms Forge Mod Loader query prompts.",
-    category: "compatibility",
+    category: "other",
     tags: ["forge"],
   },
   {

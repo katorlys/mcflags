@@ -1,11 +1,6 @@
-type FlagCategory = "runtime" | "gc" | "memory" | "performance" | "diagnostic" | "compatibility"
-
-type CoreTag = "bukkit" | "spigot" | "paper" | "folia" | "waterfall" | "velocity" | "forge"
-
-type FlagTag =
-  | "recommended"
-  | "legacy"
-  | CoreTag
+type FlagCategory = "runtime" | "gc" | "memory" | "performance" | "diagnostic" | "other"
+type CoreTag = "bukkit" | "spigot" | "paper" | "folia" | "waterfall" | "velocity" | "forge" | "fabric" | "quilt" | "arclight" | "sponge"
+type FlagTag = | "recommended" | "legacy" | CoreTag
 
 type Flag = {
   id: string
