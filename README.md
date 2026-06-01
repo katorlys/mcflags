@@ -38,14 +38,14 @@ Don't know which flags to use? Choose from preset flag sets such as Aikar's, Com
 
 By choosing Custom, you can start building your flag set from scratch.
 
-You can also submit your own flag sets.
+You can also [submit your own flag sets](https://github.com/katorlys/mcflags/issues/new?template=2-submit-flag-set.yml).
 
 ### Flag selection area
 Search, filter, sort, and select JVM flags.
 
 ![](screenshots/flag-selection.png)
 
-If a flag you use is not included in the list, you can submit it.
+If a flag you use is not included in the list, you can [submit it](https://github.com/katorlys/mcflags/issues/new?template=1-submit-flag.yml).
 
 ### Result editor
 Edit the generated result directly, with built-in auto-complete and synchronization to the flag selection area.
