@@ -47,7 +47,7 @@ function Header({ theme, onThemeChange }: HeaderProps) {
     <header className="sticky top-0 z-40 border-b bg-background/90 backdrop-blur">
       <div className="mx-auto box-border flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3 font-semibold">
-          <a href="https://katorly.com" target="_blank" rel="noreferrer" aria-label={t("nav.lab")}>
+          <a href="https://katorly.com" target="_blank" rel="noreferrer" aria-label="Katorly Lab">
             <img className="size-8 rounded-md" src={labIconSrc} alt="Katorly Lab" />
           </a>
           <span className="text-muted-foreground" aria-hidden="true">/</span>

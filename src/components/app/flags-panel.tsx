@@ -12,6 +12,8 @@ import { FaArrowDownAZ, FaFilter, FaGrip, FaList, FaMagnifyingGlass } from 'reac
 const FLAGS_PER_PAGE = 9
 const SUBMIT_FLAG_URL = "https://github.com/katorlys/mcflags/issues/new?template=1-submit-flag.yml"
 
+const getFlagDescriptionKey = (flagId: string) => `flagList.${flagId}`
+
 type FlagSort = "default" | "az" | "za"
 type FlagView = "cards" | "list"
 
@@ -29,12 +31,14 @@ function FlagsPanel({ flags, selectedFlags, onFlagToggle, onFlagValueChange }: F
   const [flagSort, setFlagSort] = useState<FlagSort>("default")
   const [flagView, setFlagView] = useState<FlagView>("cards")
   const [flagPage, setFlagPage] = useState(1)
+  const getFlagDescription = (flag: Flag) => t(getFlagDescriptionKey(flag.id))
   const normalizedFlagSearch = flagSearch.trim().toLowerCase()
   const visibleFlags = flags.filter((flag) => {
+    const flagDescription = getFlagDescription(flag).toLowerCase()
     const matchesSearch = normalizedFlagSearch.length === 0
       || flag.name.toLowerCase().includes(normalizedFlagSearch)
       || flag.value.toLowerCase().includes(normalizedFlagSearch)
-      || flag.description.toLowerCase().includes(normalizedFlagSearch)
+      || flagDescription.includes(normalizedFlagSearch)
       || flag.tags.some((tag) => tag.toLowerCase().includes(normalizedFlagSearch))
     const matchesFilter = selectedFilterId === "all"
       || flag.category === selectedFilterId
@@ -100,7 +104,7 @@ function FlagsPanel({ flags, selectedFlags, onFlagToggle, onFlagValueChange }: F
             </SelectTrigger>
             <SelectContent>
               {flagFilters.map((filter) => (
-                <SelectItem key={filter.id} value={filter.id}>{filter.name}</SelectItem>
+                <SelectItem key={filter.id} value={filter.id}>{t(filter.name)}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -123,7 +127,7 @@ function FlagsPanel({ flags, selectedFlags, onFlagToggle, onFlagValueChange }: F
                     {flag.tags.map((tag) => <Badge key={tag} variant="outline">{tag}</Badge>)}
                   </span>
                 </div>
-                <p className="text-sm text-muted-foreground">{flag.description}</p>
+                <p className="text-sm text-muted-foreground">{getFlagDescription(flag)}</p>
                 {flag.configurable && isFlagSelected(flag.id) ? (
                   <label className="mt-4 flex w-full items-center gap-2 text-sm" onClick={(event) => event.stopPropagation()}>
                     <span className="text-muted-foreground">{t("flags.value")}</span>
@@ -141,7 +145,7 @@ function FlagsPanel({ flags, selectedFlags, onFlagToggle, onFlagValueChange }: F
                 <button className="grid w-full gap-3 p-4 text-left transition-colors hover:bg-accent md:grid-cols-[minmax(0,1fr)_auto] md:items-center" onClick={() => onFlagToggle(flag.id)} type="button" aria-pressed={isFlagSelected(flag.id)}>
                   <span className="grid min-w-0 gap-1">
                     <span className="truncate font-medium" title={flag.value}>{flag.value}</span>
-                    <span className="text-sm text-muted-foreground">{flag.description}</span>
+                    <span className="text-sm text-muted-foreground">{getFlagDescription(flag)}</span>
                   </span>
                   <span className="flex flex-wrap gap-1 md:justify-end">
                     {flag.tags.map((tag) => <Badge key={tag} variant="outline">{tag}</Badge>)}

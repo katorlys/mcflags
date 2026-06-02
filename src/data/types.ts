@@ -6,7 +6,6 @@ type Flag = {
   id: string
   value: string
   name: string
-  description: string
   category: FlagCategory
   tags: FlagTag[]
   configurable?: {

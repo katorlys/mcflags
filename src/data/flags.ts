@@ -1,17 +1,10 @@
 import type { Flag } from './types'
 
-/**
- * Parts of the descriptions come from:
- * - https://docs.oracle.com/javase/8/docs/technotes/tools/windows/java.html
- * - https://docs.oracle.com/en/java/javase/17/gctuning
- */
-
 const flags = [
   {
     id: "always-pre-touch",
     value: "-XX:+AlwaysPreTouch",
     name: "AlwaysPreTouch",
-    description: "Enables touching of every page on the Java heap during JVM initialization.",
     category: "memory",
     tags: ["recommended"],
   },
@@ -19,7 +12,6 @@ const flags = [
     id: "disable-explicit-gc",
     value: "-XX:+DisableExplicitGC",
     name: "DisableExplicitGC",
-    description: "Enables the option that disables processing of calls to System.gc().",
     category: "gc",
     tags: ["recommended"],
   },
@@ -27,7 +19,6 @@ const flags = [
     id: "parallel-ref-proc-enabled",
     value: "-XX:+ParallelRefProcEnabled",
     name: "ParallelRefProcEnabled",
-    description: "Enables parallel reference processing.",
     category: "gc",
     tags: ["recommended"],
   },
@@ -35,7 +26,6 @@ const flags = [
     id: "perf-disable-shared-mem",
     value: "-XX:+PerfDisableSharedMem",
     name: "PerfDisableSharedMem",
-    description: "Forces JVM to use anonymous memory for Performance Counters instead of a mapped file.",
     category: "performance",
     tags: [],
   },
@@ -43,7 +33,6 @@ const flags = [
     id: "unlock-experimental-vm-options",
     value: "-XX:+UnlockExperimentalVMOptions",
     name: "UnlockExperimentalVMOptions",
-    description: "Unlocks experimental JVM options.",
     category: "runtime",
     tags: ["recommended"],
   },
@@ -51,7 +40,6 @@ const flags = [
     id: "use-g1gc",
     value: "-XX:+UseG1GC",
     name: "UseG1GC",
-    description: "Enables the use of the garbage-first (G1) garbage collector.",
     category: "gc",
     tags: ["recommended"],
   },
@@ -59,7 +47,6 @@ const flags = [
     id: "g1-heap-region-size",
     value: "-XX:G1HeapRegionSize",
     name: "G1HeapRegionSize",
-    description: "Sets the size of the regions into which the Java heap is subdivided when using the garbage-first (G1) collector.",
     category: "gc",
     tags: [],
     configurable: {
@@ -75,7 +62,6 @@ const flags = [
     id: "g1-heap-waste-percent",
     value: "-XX:G1HeapWastePercent",
     name: "G1HeapWastePercent",
-    description: "The allowed unreclaimed space in the collection set candidates as a percentage.",
     category: "gc",
     tags: [],
     configurable: {
@@ -91,7 +77,6 @@ const flags = [
     id: "g1-max-new-size-percent",
     value: "-XX:G1MaxNewSizePercent",
     name: "G1MaxNewSizePercent",
-    description: "The size of the young generation in total.",
     category: "gc",
     tags: [],
     configurable: {
@@ -107,7 +92,6 @@ const flags = [
     id: "g1-mixed-gc-count-target",
     value: "-XX:G1MixedGCCountTarget",
     name: "G1MixedGCCountTarget",
-    description: "The expected length of the space-reclamation phase in a number of collections.",
     category: "gc",
     tags: [],
     configurable: {
@@ -123,7 +107,6 @@ const flags = [
     id: "g1-mixed-gc-live-threshold-percent",
     value: "-XX:G1MixedGCLiveThresholdPercent",
     name: "G1MixedGCLiveThresholdPercent",
-    description: "Old generation regions with higher live object occupancy than this percentage aren't collected in this space-reclamation phase.",
     category: "gc",
     tags: [],
     configurable: {
@@ -139,7 +122,6 @@ const flags = [
     id: "g1-new-size-percent",
     value: "-XX:G1NewSizePercent",
     name: "G1NewSizePercent",
-    description: "The size of the young generation in total.",
     category: "gc",
     tags: [],
     configurable: {
@@ -155,7 +137,6 @@ const flags = [
     id: "g1-rset-updating-pause-time-percent",
     value: "-XX:G1RSetUpdatingPauseTimePercent",
     name: "G1RSetUpdatingPauseTimePercent",
-    description: "Determines the percentage of total garbage collection time G1 should spend in the Update RS phase updating any remaining remembered sets.",
     category: "gc",
     tags: [],
     configurable: {
@@ -171,7 +152,6 @@ const flags = [
     id: "g1-reserve-percent",
     value: "-XX:G1ReservePercent",
     name: "G1ReservePercent",
-    description: "Sets the percentage of the heap that is reserved as a false ceiling to reduce the possibility of promotion failure for the G1 collector.",
     category: "gc",
     tags: [],
     configurable: {
@@ -187,7 +167,6 @@ const flags = [
     id: "initiating-heap-occupancy-percent",
     value: "-XX:InitiatingHeapOccupancyPercent",
     name: "InitiatingHeapOccupancyPercent",
-    description: "Sets the percentage of the heap occupancy at which to start a concurrent GC cycle.",
     category: "gc",
     tags: [],
     configurable: {
@@ -203,7 +182,6 @@ const flags = [
     id: "max-gc-pause-millis",
     value: "-XX:MaxGCPauseMillis",
     name: "MaxGCPauseMillis",
-    description: "Sets a target for the maximum GC pause time.",
     category: "gc",
     tags: [],
     configurable: {
@@ -219,7 +197,6 @@ const flags = [
     id: "max-tenuring-threshold",
     value: "-XX:MaxTenuringThreshold",
     name: "MaxTenuringThreshold",
-    description: "Sets the maximum tenuring threshold for use in adaptive GC sizing.",
     category: "gc",
     tags: [],
     configurable: {
@@ -235,7 +212,6 @@ const flags = [
     id: "survivor-ratio",
     value: "-XX:SurvivorRatio",
     name: "SurvivorRatio",
-    description: "Sets the ratio between eden space size and survivor space size.",
     category: "gc",
     tags: [],
     configurable: {
@@ -251,7 +227,6 @@ const flags = [
     id: "target-survivor-ratio",
     value: "-XX:TargetSurvivorRatio",
     name: "TargetSurvivorRatio",
-    description: "Sets the desired percentage of survivor space used after young garbage collection.",
     category: "gc",
     tags: [],
     configurable: {
@@ -267,7 +242,6 @@ const flags = [
     id: "fml-query-result-confirm",
     value: "-Dfml.queryResult=confirm",
     name: "fml.queryResult confirm",
-    description: "Automatically confirms Forge Mod Loader query prompts.",
     category: "other",
     tags: ["forge"],
   },
@@ -275,7 +249,6 @@ const flags = [
     id: "max-inline-level",
     value: "-XX:MaxInlineLevel",
     name: "MaxInlineLevel",
-    description: "Adjusts JVM method inlining depth.",
     category: "performance",
     tags: ["velocity"],
     configurable: {
@@ -291,7 +264,6 @@ const flags = [
     id: "using-aikars-flags",
     value: "-Dusing.aikars.flags=https://mcflags.emc.gs",
     name: "using.aikars.flags",
-    description: "Marks the script as using Aikar flags.",
     category: "diagnostic",
     tags: [],
   },
@@ -299,7 +271,6 @@ const flags = [
     id: "aikars-new-flags",
     value: "-Daikars.new.flags=true",
     name: "aikars.new.flags",
-    description: "Marks the script as using the newer Aikar flags.",
     category: "diagnostic",
     tags: [],
   },
