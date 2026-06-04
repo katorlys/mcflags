@@ -69,12 +69,10 @@ function AppShell() {
                 memory={launch.memory}
                 maxMemory={launch.maxMemory}
                 selectedPresetId={flagSelection.selectedPresetId}
-                platformId={launch.platformId}
                 onJarNameChange={launch.setJarName}
                 onMemoryChange={launch.setMemory}
                 onMaxMemoryChange={launch.handleMaxMemoryChange}
                 onPresetChange={flagSelection.handlePresetChange}
-                onPlatformChange={launch.setPlatformId}
               />
             </CardContent>
           </Card>
@@ -97,6 +95,7 @@ function AppShell() {
             onFlagValueChange={flagSelection.handleFlagValueChange}
           />
           <ResultPanel
+            platformId={launch.platformId}
             resultContent={result.resultContent}
             copyLabel={result.copyLabel}
             resultRows={result.resultRows}
@@ -108,6 +107,7 @@ function AppShell() {
             textareaRef={result.resultTextareaRef}
             onCopy={result.handleCopy}
             onDownload={result.handleDownload}
+            onPlatformChange={launch.setPlatformId}
             onResultInputChange={result.handleResultInputChange}
             onResultKeyDown={result.handleResultKeyDown}
             onCompletionUpdate={result.updateCompletion}

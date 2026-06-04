@@ -1,11 +1,17 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import type { Flag } from '@/data'
+import { platforms, type Flag, type PlatformId } from '@/data'
 import type { KeyboardEvent, RefObject } from 'react'
 import { useTranslation } from 'react-i18next'
-import { FaCheck, FaCopy } from 'react-icons/fa6'
+import { FaCheck, FaCopy, FaDocker, FaLinux, FaWindows } from 'react-icons/fa6'
 
 const SUBMIT_FLAG_SET_URL = "https://github.com/katorlys/mcflags/issues/new?template=2-submit-flag-set.yml"
+
+const platformIcons = {
+  windows: FaWindows,
+  unix: FaLinux,
+  "docker-compose": FaDocker,
+}
 
 type CompletionPosition = {
   left: number
@@ -13,6 +19,7 @@ type CompletionPosition = {
 }
 
 type ResultPanelProps = {
+  platformId: PlatformId
   resultContent: string
   copyLabel: string
   resultRows: number
@@ -24,6 +31,7 @@ type ResultPanelProps = {
   textareaRef: RefObject<HTMLTextAreaElement | null>
   onCopy: () => void
   onDownload: () => void
+  onPlatformChange: (value: PlatformId) => void
   onResultInputChange: (value: string, cursorPosition: number) => void
   onResultKeyDown: (event: KeyboardEvent<HTMLTextAreaElement>) => void
   onCompletionUpdate: (value: string, cursorPosition: number) => void
@@ -31,6 +39,7 @@ type ResultPanelProps = {
 }
 
 function ResultPanel({
+  platformId,
   resultContent,
   copyLabel,
   resultRows,
@@ -42,6 +51,7 @@ function ResultPanel({
   textareaRef,
   onCopy,
   onDownload,
+  onPlatformChange,
   onResultInputChange,
   onResultKeyDown,
   onCompletionUpdate,
@@ -54,6 +64,25 @@ function ResultPanel({
         <CardTitle>{t("result.title")}</CardTitle>
       </CardHeader>
       <CardContent className="grid gap-3">
+        <div className="flex w-full gap-1 overflow-x-auto rounded-lg border bg-background p-1 sm:w-fit" role="tablist" aria-label={t("basic.platform")}>
+          {platforms.map((platform) => {
+            const PlatformIcon = platformIcons[platform.id]
+            const selected = platform.id === platformId
+            return (
+              <button
+                className={`flex h-8 min-w-0 flex-1 items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none sm:w-44 sm:flex-none sm:gap-2 sm:px-3 ${selected ? "bg-secondary text-secondary-foreground shadow-sm" : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"}`}
+                key={platform.id}
+                type="button"
+                role="tab"
+                aria-selected={selected}
+                onClick={() => onPlatformChange(platform.id)}
+              >
+                <PlatformIcon className="size-4 shrink-0" aria-hidden="true" />
+                <span className="hidden truncate sm:inline">{platform.name}</span>
+              </button>
+            )
+          })}
+        </div>
         <div className="relative min-w-0 overflow-hidden rounded-lg border bg-muted">
           <div className="group absolute right-3 top-3 z-10 flex items-center">
             <span className="pointer-events-none mr-2 hidden rounded-md bg-primary px-2.5 py-1.5 text-xs whitespace-nowrap text-primary-foreground shadow-sm group-hover:block">

@@ -2,28 +2,19 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Slider } from '@/components/ui/slider'
-import { platforms, presets } from '@/data'
-import type { PlatformId, PresetId } from '@/data'
-import { FaDocker, FaLinux, FaWindows } from 'react-icons/fa6'
+import { presets } from '@/data'
+import type { PresetId } from '@/data'
 import { useTranslation } from 'react-i18next'
-
-const platformIcons = {
-  windows: FaWindows,
-  unix: FaLinux,
-  "docker-compose": FaDocker,
-}
 
 type BasicSettingsCardProps = {
   jarName: string
   memory: number[]
   maxMemory: number
   selectedPresetId: PresetId
-  platformId: PlatformId
   onJarNameChange: (value: string) => void
   onMemoryChange: (value: number[]) => void
   onMaxMemoryChange: (value: string) => void
   onPresetChange: (value: string) => void
-  onPlatformChange: (value: PlatformId) => void
 }
 
 function BasicCard({
@@ -31,12 +22,10 @@ function BasicCard({
   memory,
   maxMemory,
   selectedPresetId,
-  platformId,
   onJarNameChange,
   onMemoryChange,
   onMaxMemoryChange,
   onPresetChange,
-  onPlatformChange,
 }: BasicSettingsCardProps) {
   const { t } = useTranslation()
   const selectedPreset = presets.find((preset) => preset.id === selectedPresetId) ?? presets[0]
@@ -86,27 +75,6 @@ function BasicCard({
                 </span>
               </SelectItem>
             ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="grid gap-2">
-        <Label>{t("basic.platform")}</Label>
-        <Select value={platformId} onValueChange={(value) => onPlatformChange(value as PlatformId)}>
-          <SelectTrigger>
-            <SelectValue placeholder={t("basic.selectPlatform")} />
-          </SelectTrigger>
-          <SelectContent>
-            {platforms.map((platform) => {
-              const PlatformIcon = platformIcons[platform.id]
-              return (
-                <SelectItem key={platform.id} value={platform.id}>
-                  <span className="flex items-center gap-2">
-                    <PlatformIcon className="size-4" aria-hidden="true" />
-                    {platform.name}
-                  </span>
-                </SelectItem>
-              )
-            })}
           </SelectContent>
         </Select>
       </div>
