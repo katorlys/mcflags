@@ -165,14 +165,14 @@ function FlagsPanel({ flags, selectedFlags, onFlagToggle, onFlagValueChange }: F
         {visibleFlags.length === 0 ? <p className="rounded-lg border-dashed p-6 text-center text-sm text-muted-foreground">{t("flags.none")}</p> : null}
         {visibleFlags.length > 0 ? (
           <div className="grid gap-3 border-t pt-4 text-sm text-muted-foreground sm:grid-cols-[1fr_auto_1fr] sm:items-center">
-            <span>{t("flags.showing", { start: (currentFlagPage - 1) * FLAGS_PER_PAGE + 1, end: Math.min(currentFlagPage * FLAGS_PER_PAGE, visibleFlags.length), total: visibleFlags.length })}</span>
-            <div className="flex items-center justify-center gap-2">
+            <span className="text-center sm:text-left">{t("flags.showing", { start: (currentFlagPage - 1) * FLAGS_PER_PAGE + 1, end: Math.min(currentFlagPage * FLAGS_PER_PAGE, visibleFlags.length), total: visibleFlags.length })}</span>
+            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:flex sm:justify-center">
               <Button type="button" size="sm" onClick={() => setFlagPage((page) => Math.max(1, page - 1))} disabled={currentFlagPage === 1}>{t("flags.previous")}</Button>
               <span className="min-w-20 text-center">{currentFlagPage} / {totalFlagPages}</span>
               <Button type="button" size="sm" onClick={() => setFlagPage((page) => Math.min(totalFlagPages, page + 1))} disabled={currentFlagPage === totalFlagPages}>{t("flags.next")}</Button>
             </div>
-            <div className="flex justify-start sm:justify-end">
-              <Button className="text-foreground" variant="outline" asChild>
+            <div className="flex sm:justify-end">
+              <Button className="w-full text-foreground sm:w-auto" variant="outline" asChild>
                 <a href={SUBMIT_FLAG_URL} target="_blank" rel="noreferrer">{t("flags.submit")}</a>
               </Button>
             </div>
